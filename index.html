@@ -65,14 +65,16 @@
 
         .fs-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; }
         
-        /* TELA CHEIA (Nativa e Simulada) */
+        /* TELA CHEIA NATIVA E SIMULADA COM SUPORTE A MOBILE */
         .fs-wrapper:fullscreen, .fs-wrapper:-webkit-full-screen, .fs-wrapper.pseudo-fullscreen { 
             background: radial-gradient(circle at center, #111115 0%, #000000 100%); 
         }
 
         .fs-wrapper.pseudo-fullscreen {
             position: fixed !important; top: 0 !important; left: 0 !important;
-            width: 100vw !important; height: 100vh !important;
+            width: 100vw !important; 
+            height: 100vh !important; /* Fallback PC */
+            height: 100dvh !important; /* Medida dinâmica para Celular (Ignora menus do navegador) */
             z-index: 9999 !important; margin: 0 !important;
         }
 
@@ -162,22 +164,19 @@
         .empty-state { text-align: center; color: #666; margin-top: 40px; font-size: 0.9rem; }
 
         /* ==========================================
-           MODO MOBILE (CORREÇÃO DE ALTURA E ROLAGEM)
+           MODO MOBILE
            ========================================== */
         @media (max-width: 768px) {
-            /* Permite que a tela toda seja rolada para ver a playlist em baixo */
             body { overflow-y: auto; overflow-x: hidden; }
             
             .player-container { 
                 flex-direction: column; width: 100vw; height: auto; min-height: 100vh; border-radius: 0; border: none; background: transparent;
             }
             
-            /* O Reprodutor principal agora toma 100% da tela sozinho */
             .main-player { 
                 height: 100vh; height: 100dvh; flex: none; padding: 30px 15px 20px 15px; 
             }
             
-            /* A playlist fica lá em baixo, você rola a tela pra ver */
             .playlist-sidebar { 
                 width: 100%; flex: none; min-height: 60vh; border-left: none; border-top: 1px solid #222; padding: 40px 15px; background: rgba(5, 5, 5, 0.9);
             }
@@ -192,7 +191,6 @@
 
             .player-controls-wrapper { border-top: none; margin-top: 10px; padding-top: 10px; }
 
-            /* Máscara suave para as letras não cortarem seco */
             .lyrics-window {
                 mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
                 -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
@@ -202,7 +200,8 @@
             .fs-wrapper:-webkit-full-screen .player-controls-wrapper,
             .fs-wrapper.pseudo-fullscreen .player-controls-wrapper {
                 background: linear-gradient(transparent, rgba(0,0,0,0.95) 40%, rgba(0,0,0,1) 100%);
-                padding: 20px 15px 40px 15px; 
+                /* Respiro para a barra home do iPhone */
+                padding-bottom: env(safe-area-inset-bottom, 40px) !important;
             }
         }
 
@@ -544,7 +543,6 @@
 
             let targetY;
             if (isMobile) {
-                // No celular a linha ativa fica sempre exatamente no meio do espaço disponível pras letras
                 targetY = (windowHeight / 2) - (lh / 2);
             } else if (isFullscreen) {
                 targetY = (windowHeight / 2) + lh;
@@ -649,6 +647,7 @@
             setTimeout(() => positionTrack(currentTime === 0 ? 0 : currentTrackIndex), 100);
         }
 
+        // LÓGICA CORRIGIDA DE TELA CHEIA (TRAVA O FUNDO)
         function toggleFullScreen() {
             const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || fsWrapper.classList.contains('pseudo-fullscreen');
 
@@ -656,12 +655,14 @@
                 if (fsWrapper.requestFullscreen) {
                     fsWrapper.requestFullscreen().catch(e => {
                         fsWrapper.classList.add('pseudo-fullscreen');
+                        document.body.style.overflow = 'hidden'; // Evita que a tela inteira role
                         updateFsIcon(true);
                     });
                 } else if (fsWrapper.webkitRequestFullscreen) {
                     fsWrapper.webkitRequestFullscreen();
                 } else {
                     fsWrapper.classList.add('pseudo-fullscreen');
+                    document.body.style.overflow = 'hidden';
                     updateFsIcon(true);
                 }
             } else {
@@ -671,6 +672,7 @@
                 }
                 if (fsWrapper.classList.contains('pseudo-fullscreen')) {
                     fsWrapper.classList.remove('pseudo-fullscreen');
+                    document.body.style.overflow = ''; // Libera a rolagem de volta
                     updateFsIcon(false);
                 }
             }
