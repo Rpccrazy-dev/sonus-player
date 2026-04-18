@@ -162,14 +162,27 @@
         .empty-state { text-align: center; color: #666; margin-top: 40px; font-size: 0.9rem; }
 
         /* ==========================================
-           MODO MOBILE E RESPONSIVIDADE CORRIGIDO
+           MODO MOBILE (CORREÇÃO DE ALTURA E ROLAGEM)
            ========================================== */
         @media (max-width: 768px) {
-            .player-container { flex-direction: column; width: 100vw; height: 100vh; border-radius: 0; border: none; }
-            .main-player { padding: 20px 15px 10px 15px; }
-            .playlist-sidebar { width: 100%; flex: 1; border-left: none; border-top: 1px solid var(--glass-border); padding: 20px 15px; }
+            /* Permite que a tela toda seja rolada para ver a playlist em baixo */
+            body { overflow-y: auto; overflow-x: hidden; }
             
-            .line { font-size: 1.6rem; height: 45px; } /* Texto ligeiramente mais compacto */
+            .player-container { 
+                flex-direction: column; width: 100vw; height: auto; min-height: 100vh; border-radius: 0; border: none; background: transparent;
+            }
+            
+            /* O Reprodutor principal agora toma 100% da tela sozinho */
+            .main-player { 
+                height: 100vh; height: 100dvh; flex: none; padding: 30px 15px 20px 15px; 
+            }
+            
+            /* A playlist fica lá em baixo, você rola a tela pra ver */
+            .playlist-sidebar { 
+                width: 100%; flex: none; min-height: 60vh; border-left: none; border-top: 1px solid #222; padding: 40px 15px; background: rgba(5, 5, 5, 0.9);
+            }
+            
+            .line { font-size: 1.6rem; height: 45px; } 
             .album-art { width: 60px; height: 60px; }
             .song-titles h2 { font-size: 1.3rem; }
             .action-buttons { gap: 15px; }
@@ -177,23 +190,12 @@
             .volume-container { display: none; } 
             .upload-content { width: 90%; padding: 20px; }
 
-            /* Remove borda do player no celular para ficar 100% liso */
-            .player-controls-wrapper {
-                border-top: none;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
+            .player-controls-wrapper { border-top: none; margin-top: 10px; padding-top: 10px; }
 
-            /* Gradiente corrigido para sumir BEM ANTES de tocar nos botões */
+            /* Máscara suave para as letras não cortarem seco */
             .lyrics-window {
-                mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 50%, transparent 80%) !important;
-                -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 50%, transparent 80%) !important;
-            }
-            .fs-wrapper:fullscreen .lyrics-window,
-            .fs-wrapper:-webkit-full-screen .lyrics-window,
-            .fs-wrapper.pseudo-fullscreen .lyrics-window {
-                mask-image: linear-gradient(to bottom, transparent 10%, black 25%, black 50%, transparent 80%) !important;
-                -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 25%, black 50%, transparent 80%) !important;
+                mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
+                -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
             }
 
             .fs-wrapper:fullscreen .player-controls-wrapper,
@@ -541,10 +543,13 @@
             const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || fsWrapper.classList.contains('pseudo-fullscreen');
 
             let targetY;
-            if (isFullscreen) {
-                targetY = isMobile ? (windowHeight * 0.35) : (windowHeight / 2);
+            if (isMobile) {
+                // No celular a linha ativa fica sempre exatamente no meio do espaço disponível pras letras
+                targetY = (windowHeight / 2) - (lh / 2);
+            } else if (isFullscreen) {
+                targetY = (windowHeight / 2) + lh;
             } else {
-                targetY = isMobile ? (windowHeight * 0.3) : lh * 3;
+                targetY = lh * 3;
             }
             
             const offset = targetY - (activeIndex * lh);
