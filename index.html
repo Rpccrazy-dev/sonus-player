@@ -65,34 +65,38 @@
 
         .fs-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; }
         
-        /* TELA CHEIA NATIVA E SIMULADA COM SUPORTE A MOBILE */
-        .fs-wrapper:fullscreen, .fs-wrapper:-webkit-full-screen, .fs-wrapper.pseudo-fullscreen { 
-            background: radial-gradient(circle at center, #111115 0%, #000000 100%); 
+        /* TELA CHEIA APLICADA NO CONTAINER PRINCIPAL (Resolve o bug do Safari) */
+        .player-container:fullscreen, .player-container:-webkit-full-screen, .player-container.pseudo-fullscreen { 
+            background: radial-gradient(circle at center, #111115 0%, #000000 100%) !important;
+            border-radius: 0 !important; border: none !important;
+            width: 100dvw !important; height: 100dvh !important; /* dvh evita que a barra de endereço tampe os botões */
         }
 
-        .fs-wrapper.pseudo-fullscreen {
-            position: fixed !important; top: 0 !important; left: 0 !important;
-            width: 100vw !important; 
-            height: 100vh !important; /* Fallback PC */
-            height: 100dvh !important; /* Medida dinâmica para Celular (Ignora menus do navegador) */
-            z-index: 9999 !important; margin: 0 !important;
+        .player-container.pseudo-fullscreen {
+            position: fixed !important; top: 0 !important; left: 0 !important; z-index: 9999 !important; margin: 0 !important;
         }
 
-        .fs-wrapper:fullscreen .lyrics-window, .fs-wrapper:-webkit-full-screen .lyrics-window, .fs-wrapper.pseudo-fullscreen .lyrics-window {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1;
-            mask-image: linear-gradient(transparent 5%, black 20%, black 85%, transparent 100%);
-            -webkit-mask-image: linear-gradient(transparent 5%, black 20%, black 85%, transparent 100%);
+        /* Oculta a playlist na tela cheia para focar só na letra */
+        .player-container:fullscreen .playlist-sidebar,
+        .player-container:-webkit-full-screen .playlist-sidebar,
+        .player-container.pseudo-fullscreen .playlist-sidebar,
+        .player-container:fullscreen .now-playing-info,
+        .player-container:-webkit-full-screen .now-playing-info,
+        .player-container.pseudo-fullscreen .now-playing-info {
+            display: none !important;
         }
 
-        .fs-wrapper:fullscreen .player-controls-wrapper, .fs-wrapper:-webkit-full-screen .player-controls-wrapper, .fs-wrapper.pseudo-fullscreen .player-controls-wrapper {
-            position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 30px 60px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.95) 70%); border-top: none; z-index: 100;
+        .player-container:fullscreen .player-controls-wrapper,
+        .player-container:-webkit-full-screen .player-controls-wrapper,
+        .player-container.pseudo-fullscreen .player-controls-wrapper {
+            position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 30px 60px 40px 60px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.95) 40%, rgba(0,0,0,1) 100%); border-top: none; z-index: 100;
         }
 
         .lyrics-window {
             flex: 1; position: relative; overflow: hidden;
-            mask-image: linear-gradient(transparent 0%, black 25%, black 100%);
-            -webkit-mask-image: linear-gradient(transparent 0%, black 25%, black 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
         }
 
         .lyrics-track { position: absolute; width: 100%; display: flex; flex-direction: column; align-items: center; transition: transform 0.4s cubic-bezier(0.2, 0.4, 0.3, 1); }
@@ -163,23 +167,10 @@
         .btn-close:hover { background: #333; }
         .empty-state { text-align: center; color: #666; margin-top: 40px; font-size: 0.9rem; }
 
-        /* ==========================================
-           MODO MOBILE
-           ========================================== */
         @media (max-width: 768px) {
-            body { overflow-y: auto; overflow-x: hidden; }
-            
-            .player-container { 
-                flex-direction: column; width: 100vw; height: auto; min-height: 100vh; border-radius: 0; border: none; background: transparent;
-            }
-            
-            .main-player { 
-                height: 100vh; height: 100dvh; flex: none; padding: 30px 15px 20px 15px; 
-            }
-            
-            .playlist-sidebar { 
-                width: 100%; flex: none; min-height: 60vh; border-left: none; border-top: 1px solid #222; padding: 40px 15px; background: rgba(5, 5, 5, 0.9);
-            }
+            .player-container { flex-direction: column; width: 100vw; height: 100vh; border-radius: 0; border: none; }
+            .main-player { padding: 20px 15px 10px 15px; }
+            .playlist-sidebar { width: 100%; flex: 1; border-left: none; border-top: 1px solid var(--glass-border); padding: 20px 15px; }
             
             .line { font-size: 1.6rem; height: 45px; } 
             .album-art { width: 60px; height: 60px; }
@@ -191,17 +182,10 @@
 
             .player-controls-wrapper { border-top: none; margin-top: 10px; padding-top: 10px; }
 
-            .lyrics-window {
-                mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
-                -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
-            }
-
-            .fs-wrapper:fullscreen .player-controls-wrapper,
-            .fs-wrapper:-webkit-full-screen .player-controls-wrapper,
-            .fs-wrapper.pseudo-fullscreen .player-controls-wrapper {
-                background: linear-gradient(transparent, rgba(0,0,0,0.95) 40%, rgba(0,0,0,1) 100%);
-                /* Respiro para a barra home do iPhone */
-                padding-bottom: env(safe-area-inset-bottom, 40px) !important;
+            .player-container:fullscreen .player-controls-wrapper,
+            .player-container:-webkit-full-screen .player-controls-wrapper,
+            .player-container.pseudo-fullscreen .player-controls-wrapper {
+                padding: 20px 15px 40px 15px; 
             }
         }
 
@@ -233,7 +217,7 @@
                 </div>
             </div>
 
-            <div class="fs-wrapper" id="fsWrapper" ondblclick="toggleFullScreen()">
+            <div class="fs-wrapper" id="fsWrapper">
                 <div class="lyrics-window" id="lyricsWindow">
                     <div class="lyrics-track" id="lyricsTrack"></div>
                 </div>
@@ -334,8 +318,7 @@
         
         const track = document.getElementById('lyricsTrack');
         const lyricsWindow = document.getElementById('lyricsWindow');
-        const fsWrapper = document.getElementById('fsWrapper');
-        const playerApp = document.getElementById('playerApp');
+        const playerApp = document.getElementById('playerApp'); // AGORA APLICAMOS A TELA CHEIA AQUI
         const seekSlider = document.getElementById('seekSlider');
         const volumeSlider = document.getElementById('volumeSlider');
         const timeCurrent = document.getElementById('timeCurrent');
@@ -538,17 +521,11 @@
         function positionTrack(activeIndex) {
             const lh = getLineHeight();
             const windowHeight = lyricsWindow.clientHeight;
-            const isMobile = window.innerWidth <= 768;
-            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || fsWrapper.classList.contains('pseudo-fullscreen');
 
-            let targetY;
-            if (isMobile) {
-                targetY = (windowHeight / 2) - (lh / 2);
-            } else if (isFullscreen) {
-                targetY = (windowHeight / 2) + lh;
-            } else {
-                targetY = lh * 3;
-            }
+            // A MÁGICA ACONTECE AQUI:
+            // Define o alvo (targetY) a 65% da tela. A letra ativa para sempre na parte de baixo da tela
+            // e obriga as outras letras a nascerem lá debaixo e subirem ao longo da música.
+            let targetY = windowHeight * 0.65; 
             
             const offset = targetY - (activeIndex * lh);
             track.style.transform = `translateY(${offset}px)`;
@@ -647,22 +624,20 @@
             setTimeout(() => positionTrack(currentTime === 0 ? 0 : currentTrackIndex), 100);
         }
 
-        // LÓGICA CORRIGIDA DE TELA CHEIA (TRAVA O FUNDO)
         function toggleFullScreen() {
-            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || fsWrapper.classList.contains('pseudo-fullscreen');
+            // A TELA CHEIA AGORA AGE NO PLAYER INTEIRO PARA ESCONDER A PLAYLIST
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || playerApp.classList.contains('pseudo-fullscreen');
 
             if (!isFullscreen) {
-                if (fsWrapper.requestFullscreen) {
-                    fsWrapper.requestFullscreen().catch(e => {
-                        fsWrapper.classList.add('pseudo-fullscreen');
-                        document.body.style.overflow = 'hidden'; // Evita que a tela inteira role
+                if (playerApp.requestFullscreen) {
+                    playerApp.requestFullscreen().catch(e => {
+                        playerApp.classList.add('pseudo-fullscreen');
                         updateFsIcon(true);
                     });
-                } else if (fsWrapper.webkitRequestFullscreen) {
-                    fsWrapper.webkitRequestFullscreen();
+                } else if (playerApp.webkitRequestFullscreen) {
+                    playerApp.webkitRequestFullscreen();
                 } else {
-                    fsWrapper.classList.add('pseudo-fullscreen');
-                    document.body.style.overflow = 'hidden';
+                    playerApp.classList.add('pseudo-fullscreen');
                     updateFsIcon(true);
                 }
             } else {
@@ -670,9 +645,8 @@
                     if (document.exitFullscreen) { document.exitFullscreen(); } 
                     else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
                 }
-                if (fsWrapper.classList.contains('pseudo-fullscreen')) {
-                    fsWrapper.classList.remove('pseudo-fullscreen');
-                    document.body.style.overflow = ''; // Libera a rolagem de volta
+                if (playerApp.classList.contains('pseudo-fullscreen')) {
+                    playerApp.classList.remove('pseudo-fullscreen');
                     updateFsIcon(false);
                 }
             }
