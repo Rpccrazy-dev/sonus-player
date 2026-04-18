@@ -162,14 +162,14 @@
         .empty-state { text-align: center; color: #666; margin-top: 40px; font-size: 0.9rem; }
 
         /* ==========================================
-           MODO MOBILE E RESPONSIVIDADE AJUSTADO
+           MODO MOBILE E RESPONSIVIDADE CORRIGIDO
            ========================================== */
         @media (max-width: 768px) {
             .player-container { flex-direction: column; width: 100vw; height: 100vh; border-radius: 0; border: none; }
             .main-player { padding: 20px 15px 10px 15px; }
             .playlist-sidebar { width: 100%; flex: 1; border-left: none; border-top: 1px solid var(--glass-border); padding: 20px 15px; }
             
-            .line { font-size: 1.6rem; height: 50px; }
+            .line { font-size: 1.6rem; height: 45px; } /* Texto ligeiramente mais compacto */
             .album-art { width: 60px; height: 60px; }
             .song-titles h2 { font-size: 1.3rem; }
             .action-buttons { gap: 15px; }
@@ -177,19 +177,25 @@
             .volume-container { display: none; } 
             .upload-content { width: 90%; padding: 20px; }
 
-            /* Ajuste drástico do FADE-OUT para sumir antes de tocar no player */
+            /* Remove borda do player no celular para ficar 100% liso */
+            .player-controls-wrapper {
+                border-top: none;
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+
+            /* Gradiente corrigido para sumir BEM ANTES de tocar nos botões */
             .lyrics-window {
-                mask-image: linear-gradient(transparent 5%, black 25%, black 60%, transparent 95%);
-                -webkit-mask-image: linear-gradient(transparent 5%, black 25%, black 60%, transparent 95%);
+                mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 50%, transparent 80%) !important;
+                -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 50%, transparent 80%) !important;
             }
             .fs-wrapper:fullscreen .lyrics-window,
             .fs-wrapper:-webkit-full-screen .lyrics-window,
             .fs-wrapper.pseudo-fullscreen .lyrics-window {
-                mask-image: linear-gradient(transparent 10%, black 25%, black 50%, transparent 85%);
-                -webkit-mask-image: linear-gradient(transparent 10%, black 25%, black 50%, transparent 85%);
+                mask-image: linear-gradient(to bottom, transparent 10%, black 25%, black 50%, transparent 80%) !important;
+                -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 25%, black 50%, transparent 80%) !important;
             }
 
-            /* Aumenta o espaço embaixo do player para os botões não sumirem no iPhone */
             .fs-wrapper:fullscreen .player-controls-wrapper,
             .fs-wrapper:-webkit-full-screen .player-controls-wrapper,
             .fs-wrapper.pseudo-fullscreen .player-controls-wrapper {
@@ -339,7 +345,7 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const uploadStatus = document.getElementById('uploadStatus');
         
-        function getLineHeight() { return window.innerWidth <= 768 ? 50 : 70; }
+        function getLineHeight() { return window.innerWidth <= 768 ? 45 : 70; }
         let idleTimer;
 
         const playIconSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="transform: translateX(1px);"><path d="M8 5v14l11-7z"/></svg>`;
@@ -536,7 +542,6 @@
 
             let targetY;
             if (isFullscreen) {
-                // Joga a linha ativa mais para o topo no celular para ficar bem longe dos controles
                 targetY = isMobile ? (windowHeight * 0.35) : (windowHeight / 2);
             } else {
                 targetY = isMobile ? (windowHeight * 0.3) : lh * 3;
