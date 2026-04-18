@@ -151,6 +151,49 @@
         .btn-close { background: #222; border: 1px solid #444; color: #fff; padding: 10px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: background 0.2s; text-transform: uppercase; }
         .btn-close:hover { background: #333; }
         .empty-state { text-align: center; color: #666; margin-top: 40px; font-size: 0.9rem; }
+
+        /* ==========================================
+           MODO MOBILE E RESPONSIVIDADE
+           ========================================== */
+        @media (max-width: 768px) {
+            .player-container {
+                flex-direction: column;
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+            .main-player { padding: 20px 15px 10px 15px; }
+            
+            /* Playlist em formato de lista fluida no celular */
+            .playlist-sidebar {
+                width: 100%;
+                flex: 1;
+                border-left: none;
+                border-top: 1px solid var(--glass-border);
+                padding: 20px 15px;
+            }
+            
+            /* Reduz os tamanhos de fonte do telão para caber nas telas mobile */
+            .line { font-size: 1.6rem; height: 50px; }
+            .album-art { width: 60px; height: 60px; }
+            .song-titles h2 { font-size: 1.3rem; }
+            
+            .action-buttons { gap: 15px; }
+            .right-controls { position: relative; margin-top: 15px; justify-content: center; }
+            
+            /* Esconde a barra de volume no mobile (usa os botões do próprio aparelho) */
+            .volume-container { display: none; } 
+            
+            .upload-content { width: 90%; padding: 20px; }
+            
+            /* Ajustes finos caso ative a tela cheia no celular */
+            .fs-wrapper:fullscreen .player-controls-wrapper,
+            .fs-wrapper:-webkit-full-screen .player-controls-wrapper {
+                padding: 20px 15px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -160,8 +203,8 @@
             <h3>Adicionar Nova Música</h3>
             <div id="uploadStatus" style="color: var(--highlight); margin-bottom: 10px; display: none;">Enviando para a nuvem...</div>
             <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-                <p>Arraste e solte seus arquivos aqui</p>
-                <p><span>(Áudio: .mp3, .wav, .flac, .ogg, .m4a, .aac) | Letras: (.lrc, .txt)</span></p>
+                <p>Toque para selecionar os arquivos</p>
+                <p><span>(Áudio: .mp3, .wav, .m4a) | Letras: (.lrc, .txt)</span></p>
                 <p style="margin-top:15px; font-size:0.8rem;">O áudio e a letra precisam ter o mesmo nome para unirem sozinhos.</p>
                 <input type="file" id="fileInput" multiple accept=".mp3,.wav,.flac,.ogg,.m4a,.aac,.lrc,.txt" style="display:none;">
             </div>
@@ -271,7 +314,6 @@
 
         const audio = new Audio();
         
-        // ALARME NATIVO DO AUDIO
         audio.onerror = function() {
             alert("ERRO DE ÁUDIO: O Supabase bloqueou o download do .mp3. Isso significa que a sua pasta 'audio-files' no Storage do Supabase não está configurada como 'Public'.");
         };
@@ -294,7 +336,12 @@
         const emptyState = document.getElementById('emptyState');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const uploadStatus = document.getElementById('uploadStatus');
-        const lineHeight = 70; 
+        
+        // Função dinâmica para pegar a altura exata baseada na tela (50px celular, 70px pc)
+        function getLineHeight() {
+            return window.innerWidth <= 768 ? 50 : 70;
+        }
+
         let idleTimer;
 
         const playIconSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="transform: translateX(1px);"><path d="M8 5v14l11-7z"/></svg>`;
@@ -355,7 +402,6 @@
 
             audio.src = trackObj.audioUrl;
             
-            // LÓGICA DE LETRA COM ALARME
             if (trackObj.lrcUrl && trackObj.songData.length === 0) {
                 try {
                     const response = await fetch(trackObj.lrcUrl);
@@ -563,11 +609,13 @@
         }
 
         function positionTrack(activeIndex) {
+            const lh = getLineHeight();
             const windowHeight = lyricsWindow.clientHeight;
+            
             let targetY = document.fullscreenElement ? 
-                          ((windowHeight - (lineHeight * 5)) / 2) + (lineHeight * 4) : 
-                          lineHeight * 3; 
-            const offset = targetY - (activeIndex * lineHeight);
+                          ((windowHeight - (lh * 5)) / 2) + (lh * 4) : 
+                          lh * 3; 
+            const offset = targetY - (activeIndex * lh);
             track.style.transform = `translateY(${offset}px)`;
         }
 
