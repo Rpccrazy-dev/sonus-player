@@ -32,7 +32,13 @@
             --highlight: #ffcc00; 
         }
 
-        * { outline: none !important; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
+        * { 
+            outline: none !important; 
+            -webkit-tap-highlight-color: transparent; 
+            -webkit-user-select: none; /* Trava de seleção de texto para iOS/Safari */
+            user-select: none; 
+            box-sizing: border-box; 
+        }
 
         body {
             margin: 0; padding: 0;
@@ -93,6 +99,7 @@
 
         .lyrics-window {
             flex: 1; position: relative; overflow: hidden;
+            pointer-events: none; /* Torna a área da letra intocável pelo mouse/dedo */
             mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
         }
@@ -165,9 +172,6 @@
         .btn-close:hover { background: #333; }
         .empty-state { text-align: center; color: #666; margin-top: 40px; font-size: 0.9rem; }
 
-        /* ==========================================
-           MODO MOBILE E RESPONSIVIDADE
-           ========================================== */
         @media (max-width: 768px) {
             .player-container { flex-direction: column; width: 100vw; height: 100vh; border-radius: 0; border: none; }
             .main-player { padding: 20px 15px 10px 15px; }
@@ -183,7 +187,6 @@
 
             .player-controls-wrapper { border-top: none; margin-top: 10px; padding-top: 10px; }
 
-            /* Ajuste da máscara no celular: some gradualmente antes de bater nos controles */
             .lyrics-window {
                 mask-image: linear-gradient(to bottom, transparent 5%, black 25%, black 75%, transparent 95%) !important;
                 -webkit-mask-image: linear-gradient(to bottom, transparent 5%, black 25%, black 75%, transparent 95%) !important;
@@ -533,7 +536,6 @@
 
             let targetY;
             if (isMobile) {
-                // MATEMÁTICA CORRIGIDA: No celular, a linha sempre fica a 65% da tela, nos dois modos.
                 targetY = windowHeight * 0.65;
             } else {
                 targetY = isFullscreen ? (windowHeight / 2) : lh * 3;
