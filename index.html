@@ -2,7 +2,12 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <title>Sonus - Cloud Player</title>
     
     <script>
@@ -35,16 +40,18 @@
         * { 
             outline: none !important; 
             -webkit-tap-highlight-color: transparent; 
-            -webkit-user-select: none; /* Trava de seleção de texto para iOS/Safari */
+            -webkit-user-select: none; 
             user-select: none; 
             box-sizing: border-box; 
         }
 
         body {
             margin: 0; padding: 0;
-            background: linear-gradient(rgba(10, 10, 12, 0.92), rgba(0, 0, 0, 0.98)), 
-                        url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2564&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover; color: var(--text-active);
+            background-color: #000000; /* Garante que o fundo base é preto */
+            background-image: linear-gradient(rgba(10, 10, 12, 0.92), rgba(0, 0, 0, 0.98)), 
+                              url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2564&auto=format&fit=crop');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text-active);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;
         }
@@ -93,13 +100,16 @@
         .player-container:fullscreen .player-controls-wrapper,
         .player-container:-webkit-full-screen .player-controls-wrapper,
         .player-container.pseudo-fullscreen .player-controls-wrapper {
-            position: absolute; bottom: 0; left: 0; right: 0; margin: 0; padding: 30px 60px 40px 60px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.95) 40%, rgba(0,0,0,1) 100%); border-top: none; z-index: 100;
+            position: absolute; bottom: 0; left: 0; right: 0; margin: 0; 
+            padding: 40px 60px calc(20px + env(safe-area-inset-bottom)) 60px !important;
+            /* Fundo sólido preto embaixo para esconder as letras */
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.9) 30%, #000000 60%, #000000 100%) !important; 
+            border-top: none; z-index: 100;
         }
 
         .lyrics-window {
             flex: 1; position: relative; overflow: hidden;
-            pointer-events: none; /* Torna a área da letra intocável pelo mouse/dedo */
+            pointer-events: none; 
             mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
         }
@@ -187,15 +197,20 @@
 
             .player-controls-wrapper { border-top: none; margin-top: 10px; padding-top: 10px; }
 
-            .lyrics-window {
-                mask-image: linear-gradient(to bottom, transparent 5%, black 25%, black 75%, transparent 95%) !important;
-                -webkit-mask-image: linear-gradient(to bottom, transparent 5%, black 25%, black 75%, transparent 95%) !important;
+            .player-container:fullscreen .player-controls-wrapper,
+            .player-container:-webkit-full-screen .player-controls-wrapper,
+            .player-container.pseudo-fullscreen .player-controls-wrapper {
+                /* Padding adaptativo para o iPhone e gradiente impenetrável no fundo */
+                padding: 40px 15px calc(20px + env(safe-area-inset-bottom)) 15px !important; 
+                background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 25%, #000000 50%, #000000 100%) !important;
             }
+
             .player-container:fullscreen .lyrics-window,
             .player-container:-webkit-full-screen .lyrics-window,
             .player-container.pseudo-fullscreen .lyrics-window {
-                mask-image: linear-gradient(to bottom, transparent 10%, black 25%, black 80%, transparent 95%) !important;
-                -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 25%, black 80%, transparent 95%) !important;
+                /* A máscara faz a letra sumir antes de tocar no botão play */
+                mask-image: linear-gradient(to bottom, transparent 10%, black 25%, black 60%, transparent 80%) !important;
+                -webkit-mask-image: linear-gradient(to bottom, transparent 10%, black 25%, black 60%, transparent 80%) !important;
             }
         }
 
