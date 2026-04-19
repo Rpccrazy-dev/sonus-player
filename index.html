@@ -256,7 +256,6 @@
             return false;
         }
 
-        // AGORA A FUNÇÃO TOGGLE MODAL ESTÁ AQUI
         function toggleModal(show) { 
             if (show) uploadModal.classList.add('show'); 
             else uploadModal.classList.remove('show'); 
@@ -377,20 +376,47 @@
             try { await _supabase.from('playlist').update({ is_atual: isAtual, ordem: track.ordem }).eq('id', id); } catch(e) {}
         }
 
+        // ==========================================
+        // NOVA LIXEIRA INTELIGENTE COM LIMPEZA DE STORAGE
+        // ==========================================
         async function deleteFromGeral(id) {
-            if (!pedirSenha("excluir permanentemente")) return;
+            if (!pedirSenha("excluir permanentemente do servidor")) return;
             const track = dbAllTracks.find(t => t.id == id); if (!track) return;
             if (!confirm(`Confirmar exclusão de '${track.title}'? Isso não pode ser desfeito.`)) return;
+            
             document.getElementById('loadingOverlay').style.display = 'flex';
+            
             try {
+                let filesToRemove = [];
+                
+                if (track.audioUrl) {
+                    const audioPath = decodeURIComponent(track.audioUrl.split('/public/audio-files/')[1]);
+                    if (audioPath) filesToRemove.push(audioPath);
+                }
+                
+                if (track.lrcUrl) {
+                    const lrcPath = decodeURIComponent(track.lrcUrl.split('/public/audio-files/')[1]);
+                    if (lrcPath) filesToRemove.push(lrcPath);
+                }
+
+                if (filesToRemove.length > 0) {
+                    const { error: storageError } = await _supabase.storage.from('audio-files').remove(filesToRemove);
+                    if (storageError) console.error("Erro ao apagar arquivos físicos:", storageError);
+                }
+
                 await _supabase.from('playlist').delete().eq('id', id);
                 await fetchPlaylist(); 
+                
                 if (currentTrackId == id) {
                     audio.pause(); audio.src = ""; currentTrackId = null;
                     document.getElementById('currentTitle').innerText = "NENHUMA MÚSICA";
                     document.getElementById('lyricsTrack').innerHTML = ""; playBtn.innerHTML = playIconSVG;
                 }
-            } catch(e) { alert("Erro ao excluir."); document.getElementById('loadingOverlay').style.display = 'none'; }
+            } catch(e) { 
+                alert("Erro ao excluir."); 
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none'; 
+            }
         }
 
         function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
