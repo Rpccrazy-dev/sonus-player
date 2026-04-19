@@ -157,7 +157,7 @@
             background: rgba(255, 51, 51, 0.15) !important;
         }
         
-        /* Correção do Ícone de Arrastar e Espaço: SOMENTE NA ABA PLAYLIST */
+        /* Correção do Ícone de Arrastar: SOMENTE NA ABA PLAYLIST */
         .drag-handle { display: none; margin-right: 10px; color: #555; cursor: grab; }
         body.tab-mode-playlist .drag-handle { display: block; }
         body.tab-mode-playlist .playlist li { cursor: grab; }
@@ -536,6 +536,7 @@
             document.getElementById('fixedAudioStatus').innerHTML = `✅ Áudio fixo na nuvem: <span style="color:var(--highlight); margin-left:5px;">${edFixedAudioFile.name}</span> <span style="color:#ff3333; margin-left:10px; font-weight:bold;" title="Remover" onclick="removeFixedAudio(event)">✕</span>`;
         }
 
+        // Eventos de Upload
         if(edDropzone) {
             edDropzone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.add('dragover'); });
             edDropzone.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.remove('dragover'); });
@@ -546,6 +547,7 @@
         }
         if(edFileInput) edFileInput.addEventListener('change', (e) => handleEditorFiles(e.target.files));
         
+        // Fazer Upload do Áudio Fixo pra Nuvem na hora que seleciona
         if(edFixedInput) {
             edFixedInput.addEventListener('change', async (e) => {
                 if(e.target.files && e.target.files.length > 0) {
@@ -682,7 +684,7 @@
                         for(let i = start; i <= end; i++) {
                             allLis[i].classList.add('multi-selected');
                         }
-                        window.getSelection().removeAllRanges(); // Evita marcar texto
+                        window.getSelection().removeAllRanges(); 
                         return;
                     }
                     
@@ -758,6 +760,7 @@
             const phClicked = edPhrases[index];
             let idsToDelete = [phClicked.id];
 
+            // Verifica se a lixeira clicada faz parte do grupo selecionado
             if (selectedElements.length > 0) {
                 const selectedIds = Array.from(selectedElements).map(el => parseInt(el.id.replace('ed-item-', '')));
                 if (selectedIds.includes(phClicked.id)) {
@@ -1115,6 +1118,7 @@
 
             let updates = [];
             
+            // 1. Limpa todos da Playlist
             dbAllTracks.forEach(t => {
                 if (t.is_atual) {
                     t.is_atual = false;
@@ -1122,6 +1126,7 @@
                 }
             });
 
+            // 2. Marca os próximos 14
             let count = 0;
             for (let i = startIndex; i < displayList.length && count < 14; i++) {
                 let track = displayList[i];
@@ -1305,27 +1310,37 @@
                 if (trackObj.audioUrl === 'SEPARATOR') {
                     li.classList.add('separator-item');
                     let cleanTitle = trackObj.title.replace(/^-+\s*\d+(\.\d+)?\s*/, '');
+                    
+                    let sepActionHTML = '';
+                    if (activeTab === 'PLAYLIST') {
+                        sepActionHTML = `<div class="action-icon" onclick="toggleAtualState('${trackObj.id}', false, event)" title="Remover da Playlist (Múltiplos com Shift/Ctrl)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>`;
+                    } else {
+                        const isAdded = trackObj.is_atual;
+                        const checkColor = isAdded ? "var(--highlight)" : "#fff";
+                        const checkOpacity = isAdded ? "1" : "0.3";
+                        sepActionHTML = `<div class="action-icon check-btn" onclick="toggleAtualState('${trackObj.id}', ${!isAdded}, event)" title="Adicionar/Remover da Playlist (Múltiplos com Shift/Ctrl)" style="color:${checkColor}; opacity:${checkOpacity};"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
+                    }
+                    sepActionHTML += `<div class="action-icon delete-btn" onclick="deleteFromGeral('${trackObj.id}', event)" title="Excluir (Múltiplos com Shift/Ctrl)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>`;
+
                     li.innerHTML = `
                         <div class="drag-handle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
                         <div class="track-info" style="flex-direction: row; align-items: center; justify-content: flex-start; gap: 5px;">
                             <span class="track-index" style="color: #666; font-weight: bold; font-size: 0.85rem; min-width: 25px;">${index + 1}.</span>
                             <span class="sep-text track-title" style="flex:1; text-align:center; font-weight:800; color:var(--highlight); letter-spacing:2px;">${cleanTitle}</span>
                         </div>
-                        <div class="track-actions">
-                            <div class="action-icon delete-btn" onclick="deleteFromGeral('${trackObj.id}', event)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
-                        </div>
+                        <div class="track-actions">${sepActionHTML}</div>
                     `;
                 } else {
                     if (trackObj.id == currentTrackId) li.classList.add('active-track');
                     
                     let actionHTML = '';
                     if (activeTab === 'PLAYLIST') {
-                        actionHTML = `<div class="action-icon" onclick="toggleAtualState('${trackObj.id}', false)" title="Remover da Playlist"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>`;
+                        actionHTML = `<div class="action-icon" onclick="toggleAtualState('${trackObj.id}', false, event)" title="Remover da Playlist (Múltiplos com Shift/Ctrl)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>`;
                     } else {
                         const isAdded = trackObj.is_atual;
                         const checkColor = isAdded ? "var(--highlight)" : "#fff";
                         const checkOpacity = isAdded ? "1" : "0.3";
-                        actionHTML = `<div class="action-icon check-btn" onclick="toggleAtualState('${trackObj.id}', ${!isAdded})" title="Adicionar/Remover da Playlist" style="color:${checkColor}; opacity:${checkOpacity};"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
+                        actionHTML = `<div class="action-icon check-btn" onclick="toggleAtualState('${trackObj.id}', ${!isAdded}, event)" title="Adicionar/Remover da Playlist (Múltiplos com Shift/Ctrl)" style="color:${checkColor}; opacity:${checkOpacity};"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
                         actionHTML += `<div class="action-icon delete-btn" onclick="deleteFromGeral('${trackObj.id}', event)" title="Excluir (Múltiplos com Shift/Ctrl)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>`;
                     }
 
@@ -1343,21 +1358,60 @@
             });
         }
 
-        async function toggleAtualState(id, isAtual) {
-            const track = dbAllTracks.find(t => t.id == id); if (!track) return;
-            track.is_atual = isAtual; 
-            if(isAtual) {
-                const maxOrdem = Math.max(0, ...dbAllTracks.filter(t => t.is_atual).map(t => t.ordem));
-                track.ordem = maxOrdem + 1;
+        // LÓGICA DE INCLUSÃO/REMOÇÃO EM MASSA (PLAYLIST)
+        async function toggleAtualState(id, isAtual, event) {
+            if(event) event.stopPropagation();
+
+            let idsToToggle = [id.toString()];
+            const selectedElements = document.querySelectorAll('.playlist li.multi-selected');
+            
+            if (selectedElements.length > 0) {
+                const selectedIds = Array.from(selectedElements).map(el => el.getAttribute('data-id'));
+                if (selectedIds.includes(id.toString())) {
+                    idsToToggle = selectedIds;
+                }
             }
-            processDisplayList(); 
-            try { await _supabase.from('playlist').update({ is_atual: isAtual, ordem: track.ordem }).eq('id', id); } catch(e) {}
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            try {
+                let maxOrdem = Math.max(0, ...dbAllTracks.filter(t => t.is_atual).map(t => t.ordem));
+                if (maxOrdem === -Infinity) maxOrdem = 0;
+
+                let updates = [];
+
+                idsToToggle.forEach(toggleId => {
+                    const track = dbAllTracks.find(t => t.id == toggleId);
+                    if (track) {
+                        track.is_atual = isAtual;
+                        if (isAtual) {
+                            maxOrdem++;
+                            track.ordem = maxOrdem;
+                        }
+                        updates.push({
+                            id: track.id, title: track.title, audio_url: track.audioUrl, lrc_url: track.lrcUrl,
+                            is_atual: track.is_atual, is_question: track.is_question, is_phrases: track.is_phrases,
+                            ordem: track.ordem
+                        });
+                    }
+                });
+
+                processDisplayList(); 
+                
+                if (updates.length > 0) {
+                    await _supabase.from('playlist').upsert(updates);
+                }
+            } catch(e) {
+                console.error("Erro ao atualizar playlist", e);
+            }
+            
+            document.getElementById('loadingOverlay').style.display = 'none';
         }
 
         async function deleteFromGeral(id, event) {
             if(event) event.stopPropagation();
 
-            let idsToDelete = [id];
+            let idsToDelete = [id.toString()];
             const selectedElements = document.querySelectorAll('.playlist li.multi-selected');
             
             if (selectedElements.length > 0) {
