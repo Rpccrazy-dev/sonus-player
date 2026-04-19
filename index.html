@@ -55,7 +55,6 @@
         
         .now-playing-info { display: flex; align-items: center; gap: 0; margin-bottom: 25px; justify-content: center; }
         
-        /* OCULTANDO IMAGEM E SUBTÍTULOS PARA DESIGN MAIS LIMPO */
         .album-art { display: none !important; }
         .song-titles p { display: none !important; }
         .track-artist { display: none !important; }
@@ -133,7 +132,7 @@
         .tab-mode-atual .playlist li { cursor: grab; }
 
         .track-info { display: flex; flex-direction: column; flex: 1; pointer-events: none; }
-        .track-title { font-weight: 700; font-size: 0.95rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+        .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
         
         .track-actions { display: flex; gap: 10px; align-items: center; }
         .action-icon { cursor: pointer; opacity: 0.4; transition: opacity 0.2s, color 0.2s; color: #fff; display: flex; padding: 5px; }
@@ -142,12 +141,16 @@
         .action-icon.remove-btn:hover { color: #ffaa00; }
         .action-icon.delete-btn:hover { color: #ff3333; }
 
+        /* ANIMAÇÃO DAS BARRAS DE MÚSICA */
         .playing-icon { display: none; width: 15px; height: 15px; position: relative; margin-right:10px; }
         .playing-icon span { display: block; bottom: 0; width: 3px; height: 5px; background: var(--highlight); position: absolute; animation: bounce 1s infinite ease-in-out; }
         .playing-icon span:nth-child(1) { left: 0; animation-delay: 0s; }
         .playing-icon span:nth-child(2) { left: 6px; animation-delay: 0.2s; }
         .playing-icon span:nth-child(3) { left: 12px; animation-delay: 0.4s; }
         @keyframes bounce { 0%, 100% { height: 5px; } 50% { height: 15px; } }
+
+        /* REGRA PARA PAUSAR A ANIMAÇÃO QUANDO A MÚSICA PARAR */
+        body.is-paused .playing-icon span { animation: none !important; height: 3px !important; }
 
         .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 500; font-weight: bold; color: var(--highlight); display: none; }
         .upload-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
@@ -164,10 +167,7 @@
             .line { font-size: 1.6rem; height: 45px; } 
             .song-titles h2 { font-size: 1.3rem; } 
             
-            /* ALINHAMENTO CENTRALIZADO DOS BOTÕES NO CELULAR */
             .action-buttons { width: 100%; justify-content: center; gap: 18px; padding: 0; }
-            
-            /* O botão de tela cheia fica isolado na borda direita, sem empurrar os outros */
             .right-controls { position: absolute; right: 0; top: 50%; transform: translateY(-50%); margin: 0; } 
             .volume-container { display: none; } 
             
@@ -178,7 +178,7 @@
         }
     </style>
 </head>
-<body>
+<body class="is-paused">
 
     <div class="upload-modal" id="uploadModal">
         <div class="upload-content">
@@ -199,7 +199,7 @@
             <div class="now-playing-info">
                 <div class="song-titles">
                     <h2 id="currentTitle">CARREGANDO...</h2>
-                    <p id="currentArtist"></p> 
+                    <p id="currentArtist"></p>
                 </div>
             </div>
 
@@ -217,7 +217,16 @@
                         <button class="icon-btn" onclick="nextTrack(); event.stopPropagation();" title="Próximo"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
                         <button class="icon-btn" id="repeatBtn" onclick="toggleRepeat(); event.stopPropagation();" title="Repetir"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button>
                         <div class="right-controls">
-                            <div class="volume-container"><button class="icon-btn" title="Volume" onclick="event.stopPropagation();"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button><div class="volume-slider-wrapper"><input type="range" id="volumeSlider" value="100" max="100" onmousedown="event.stopPropagation();"></div></div>
+                            <div class="volume-container">
+                                <button class="icon-btn" title="Volume/Mudo" onclick="toggleMute(); event.stopPropagation();">
+                                    <svg id="volIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                    </svg>
+                                </button>
+                                <div class="volume-slider-wrapper">
+                                    <input type="range" id="volumeSlider" value="100" max="100" onmousedown="event.stopPropagation();">
+                                </div>
+                            </div>
                             <button class="icon-btn" id="fullscreenBtn" onclick="toggleFullScreen(); event.stopPropagation();" title="Alternar Tela Cheia"><svg id="fsIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
                         </div>
                     </div>
@@ -504,7 +513,10 @@
             fetchPlaylist();
         }
 
-        // REPRODUÇÃO E EVENTOS
+        // REPRODUÇÃO E EVENTOS (COM PAUSA DA ANIMAÇÃO)
+        audio.addEventListener('play', () => { document.body.classList.remove('is-paused'); });
+        audio.addEventListener('pause', () => { document.body.classList.add('is-paused'); });
+
         async function loadTrack(queueIndex, autoPlay = false) {
             if (queueIndex < 0 || queueIndex >= playbackQueue.length) return;
             
@@ -675,6 +687,47 @@
             }
         }
 
+        // LÓGICA DO BOTÃO DE MUDO (MUTE)
+        let previousVolume = 100;
+        let isMuted = false;
+
+        function updateVolIcon() {
+            const icon = document.getElementById('volIcon');
+            if (isMuted || audio.volume === 0) {
+                // Ícone com X
+                icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`;
+            } else {
+                // Ícone normal com ondinhas
+                icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>`;
+            }
+        }
+
+        function toggleMute() {
+            const slider = document.getElementById('volumeSlider');
+            if (isMuted) {
+                isMuted = false;
+                slider.value = previousVolume;
+                audio.volume = previousVolume / 100;
+            } else {
+                previousVolume = slider.value > 0 ? slider.value : 100; // Salva o volume antes de mutar
+                isMuted = true;
+                slider.value = 0;
+                audio.volume = 0;
+            }
+            updateProgressFill(slider);
+            updateVolIcon();
+        }
+
+        volumeSlider.addEventListener('input', function() { 
+            audio.volume = this.value / 100; 
+            updateProgressFill(this); 
+            // Tira do mudo automaticamente se o usuário arrastar o botão
+            if (this.value > 0 && isMuted) { isMuted = false; } 
+            else if (this.value == 0 && !isMuted) { isMuted = true; }
+            updateVolIcon();
+        });
+
+
         function updateFsIcon(isFullscreen) {
             const fsIcon = document.getElementById('fsIcon');
             if (isFullscreen) { fsIcon.innerHTML = `<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>`; } 
@@ -700,7 +753,7 @@
         document.addEventListener('webkitfullscreenchange', () => updateFsIcon(!!document.webkitFullscreenElement));
 
         seekSlider.addEventListener('input', function() { audio.currentTime = this.value; updateProgressFill(this); });
-        volumeSlider.addEventListener('input', function() { audio.volume = this.value / 100; updateProgressFill(this); });
+        
         window.addEventListener('resize', () => { setTimeout(() => { updateProgressFill(seekSlider); }, 100); });
 
         let idleTimer;
@@ -715,7 +768,7 @@
         playerApp.addEventListener('click', resetIdleTimer);
         playerApp.addEventListener('mouseleave', () => { clearTimeout(idleTimer); playerApp.classList.add('idle'); });
 
-        // Tira o foco do botão clicado para não bugar o Espaço
+        // Tira o foco do botão clicado para não bugar o atalho do "Espaço"
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('button');
             if(btn) btn.blur();
@@ -740,10 +793,12 @@
                 e.preventDefault();
                 volumeSlider.value = Math.min(100, parseInt(volumeSlider.value) + 5); 
                 audio.volume = volumeSlider.value / 100; updateProgressFill(volumeSlider);
+                if(volumeSlider.value > 0 && isMuted) { isMuted = false; updateVolIcon(); }
             } else if (code === 'ArrowDown' || key === 'arrowdown') {
                 e.preventDefault();
                 volumeSlider.value = Math.max(0, parseInt(volumeSlider.value) - 5); 
                 audio.volume = volumeSlider.value / 100; updateProgressFill(volumeSlider);
+                if(volumeSlider.value == 0 && !isMuted) { isMuted = true; updateVolIcon(); }
             }
             resetIdleTimer();
         });
