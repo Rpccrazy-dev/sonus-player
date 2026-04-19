@@ -124,8 +124,8 @@
         .playlist li.sortable-ghost { opacity: 0.4; background: #222; }
         
         .drag-handle { display: none; margin-right: 10px; color: #555; cursor: grab; }
-        .tab-mode-playlist .drag-handle { display: block; }
-        .tab-mode-playlist .playlist li { cursor: grab; }
+        body:not(.tab-mode-music) .drag-handle { display: block; }
+        body:not(.tab-mode-music) .playlist li { cursor: grab; }
 
         .track-info { display: flex; flex-direction: column; flex: 1; pointer-events: none; }
         .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
@@ -136,8 +136,12 @@
         .action-icon.delete-btn:hover { color: #ff3333; opacity: 1 !important; }
         .action-icon.check-btn:hover { color: var(--highlight); opacity: 1 !important; }
 
+        /* BARRINHAS CORRIGIDAS */
         .playing-icon { display: none; width: 15px; height: 15px; position: relative; margin-right:10px; }
         .playing-icon span { display: block; bottom: 0; width: 3px; height: 5px; background: var(--highlight); position: absolute; animation: bounce 1s infinite ease-in-out; }
+        .playing-icon span:nth-child(1) { left: 0; animation-delay: 0s; }
+        .playing-icon span:nth-child(2) { left: 6px; animation-delay: 0.2s; }
+        .playing-icon span:nth-child(3) { left: 12px; animation-delay: 0.4s; }
         @keyframes bounce { 0%, 100% { height: 5px; } 50% { height: 15px; } }
         body.is-paused .playing-icon span { animation: none !important; height: 3px !important; }
 
@@ -289,13 +293,14 @@
         let sortable = new Sortable(playlistUI, {
             animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost',
             onEnd: async function (evt) {
-                if (activeTab !== 'PLAYLIST' || evt.oldIndex === evt.newIndex) return;
+                if (activeTab === 'MUSIC' || evt.oldIndex === evt.newIndex) return;
                 const item = displayList.splice(evt.oldIndex, 1)[0];
                 displayList.splice(evt.newIndex, 0, item);
                 
+                const col = { 'PLAYLIST': 'is_atual', 'QUESTION': 'is_question', 'PHRASES': 'is_phrases' }[activeTab];
                 const updates = displayList.map((track, index) => {
                     track.ordem = index;
-                    return { id: track.id, title: track.title, audio_url: track.audio_url, lrc_url: track.lrc_url, is_atual: true, ordem: index };
+                    return { id: track.id, title: track.title, audio_url: track.audio_url, lrc_url: track.lrc_url, [col]: true, ordem: index };
                 });
                 renderUIPlaylist();
                 try { await _supabase.from('playlist').upsert(updates); } catch(e) {}
@@ -342,15 +347,12 @@
 
                 let actionHTML = '';
                 if (activeTab === 'PLAYLIST') {
-                    // Remover da playlist
                     actionHTML = `<div class="action-icon" onclick="toggleAtualState('${trackObj.id}', false)" title="Remover da Playlist"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>`;
                 } else {
-                    // Adicionar/Remover da playlist (Check verde/branco)
                     const isAdded = trackObj.is_atual;
                     const checkColor = isAdded ? "var(--highlight)" : "#fff";
                     const checkOpacity = isAdded ? "1" : "0.3";
                     actionHTML = `<div class="action-icon check-btn" onclick="toggleAtualState('${trackObj.id}', ${!isAdded})" title="Adicionar/Remover da Playlist" style="color:${checkColor}; opacity:${checkOpacity};"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
-                    // Lixeira
                     actionHTML += `<div class="action-icon delete-btn" onclick="deleteFromGeral('${trackObj.id}')" title="Excluir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>`;
                 }
 
@@ -386,7 +388,6 @@
             } catch(e) { alert("Erro ao excluir."); document.getElementById('loadingOverlay').style.display = 'none'; }
         }
 
-        // DRAG AND DROP CORRIGIDO (Bloqueio total da tela)
         function preventDefaults (e) { e.preventDefault(); e.stopPropagation(); }
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             document.body.addEventListener(eventName, preventDefaults, false);
@@ -446,6 +447,7 @@
         audio.addEventListener('pause', () => document.body.classList.add('is-paused'));
 
         async function loadTrack(idx, play) {
+            if (queueIndex < 0 || queueIndex >= playbackQueue.length) return;
             const t = playbackQueue[idx]; currentTrackId = t.id;
             document.querySelectorAll('.playlist li').forEach(li => li.classList.remove('active-track'));
             const activeLi = document.querySelector(`li[data-id="${t.id}"]`); if(activeLi) activeLi.classList.add('active-track');
@@ -568,7 +570,6 @@
             resetIdleTimer();
         };
 
-        function toggleModal(s) { uploadModal.classList.toggle('show',s); }
         window.onload = () => { switchTab('PLAYLIST'); if(!document.getElementById('currentTitle').innerText.includes('ERRO')) fetchPlaylist(); };
     </script>
 </body>
