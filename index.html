@@ -9,7 +9,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <title>Sonus - Cloud Player</title>
-    <link rel="icon" type="image/svg+xml" href="icone.svg">
     
     <script>
         window.onerror = function(m, f, l) {
@@ -52,7 +51,7 @@
         .player-container.idle { cursor: none; }
         .player-container.idle .player-controls-wrapper { opacity: 0; pointer-events: none; transform: translateY(10px); }
 
-        .main-player { flex: 1; display: flex; flex-direction: column; padding: 40px 40px 20px 40px; position: relative; }
+        .main-player { flex: 1; display: flex; flex-direction: column; padding: 40px 40px 20px 40px; position: relative; min-height: 0; }
         
         .now-playing-info { display: flex; align-items: center; gap: 0; margin-bottom: 25px; justify-content: center; }
         
@@ -62,7 +61,7 @@
         
         .song-titles h2 { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; text-align: center; }
 
-        .fs-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .fs-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
         
         .player-container:fullscreen, .player-container:-webkit-full-screen, .player-container.pseudo-fullscreen { 
             background: radial-gradient(circle at center, #111115 0%, #000000 100%) !important;
@@ -78,11 +77,13 @@
             background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.9) 30%, #000000 60%, #000000 100%) !important; border-top: none; z-index: 100;
         }
 
-        .lyrics-window { flex: 1; position: relative; overflow: hidden; pointer-events: none; 
+        .lyrics-window { flex: 1; position: relative; overflow: hidden; 
+            cursor: pointer; /* Indica que é clicável */
+            touch-action: manipulation; /* Impede zoom no duplo clique no celular */
             mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important;
         }
-        .lyrics-track { position: absolute; width: 100%; display: flex; flex-direction: column; align-items: center; transition: transform 0.4s cubic-bezier(0.2, 0.4, 0.3, 1); }
+        .lyrics-track { position: absolute; width: 100%; display: flex; flex-direction: column; align-items: center; transition: transform 0.4s cubic-bezier(0.2, 0.4, 0.3, 1); pointer-events: none; }
         .line { height: 70px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: 800; text-align: center; color: var(--text-dimmed); transition: color 0.3s, transform 0.3s; width: 100%; }
         .line.active { color: var(--text-active); text-shadow: 0 0 10px rgba(255,255,255,0.1); }
         .word { display: inline-block; margin: 0 6px; transition: color 0.05s; }
@@ -108,7 +109,7 @@
         #volumeSlider { width: 90px; transform: rotate(-90deg); margin: 0; }
 
         /* PLAYLIST E ABAS */
-        .playlist-sidebar { width: 350px; background: rgba(5, 5, 5, 0.6); border-left: 1px solid var(--glass-border); padding: 25px; display: flex; flex-direction: column; position: relative; }
+        .playlist-sidebar { width: 350px; background: rgba(5, 5, 5, 0.6); border-left: 1px solid var(--glass-border); padding: 25px; display: flex; flex-direction: column; position: relative; min-height: 0; }
         
         .tabs-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .tab-btn { flex: 1; background: transparent; border: none; color: #777; font-size: 0.9rem; font-weight: 700; letter-spacing: 1px; cursor: pointer; padding: 10px; transition: all 0.3s; position: relative; }
@@ -159,12 +160,20 @@
         .upload-content { background: rgba(15, 15, 18, 0.95); border: 1px solid var(--glass-border); padding: 40px; border-radius: 16px; text-align: center; width: 550px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
         .upload-content h3 { margin-top: 0; color: #fff; letter-spacing: 1px; }
         .dropzone { border: 2px dashed #444; border-radius: 12px; padding: 50px 20px; margin: 20px 0; color: #888; transition: all 0.2s; cursor: pointer; }
+        .dropzone:hover, .dropzone.dragover { border-color: var(--highlight); color: #fff; background: rgba(255,204,0,0.05); }
+        .dropzone p { margin: 5px 0; font-size: 0.9rem; }
+        .dropzone span { color: var(--highlight); font-weight: bold; }
+        .btn-close { background: #222; border: 1px solid #444; color: #fff; padding: 10px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: background 0.2s; text-transform: uppercase; }
+        .btn-close:hover { background: #333; }
         .empty-state { text-align: center; color: #666; margin-top: 40px; font-size: 0.9rem; }
 
         @media (max-width: 768px) {
-            .player-container { flex-direction: column; width: 100vw; height: 100vh; border-radius: 0; border: none; }
-            .main-player { padding: 20px 15px 10px 15px; }
-            .playlist-sidebar { width: 100%; flex: 1; border-left: none; border-top: 1px solid var(--glass-border); padding: 15px; }
+            .player-container { flex-direction: column; width: 100vw; height: 100dvh; border-radius: 0; border: none; }
+            
+            /* DIVISÃO BLINDADA: 55% pro player e 45% pra playlist, evitando que um esmague o outro */
+            .main-player { flex: 1 1 55%; min-height: 0; padding: 20px 15px 10px 15px; }
+            .playlist-sidebar { flex: 1 1 45%; min-height: 0; width: 100%; border-left: none; border-top: 1px solid var(--glass-border); padding: 15px; }
+            
             .line { font-size: 1.6rem; height: 45px; } 
             .song-titles h2 { font-size: 1.3rem; } 
             
@@ -688,17 +697,15 @@
             }
         }
 
-        // LÓGICA DO BOTÃO DE MUDO (MUTE)
+        // LÓGICA DO BOTÃO DE MUDO (MUTE) E ÍCONES
         let previousVolume = 100;
         let isMuted = false;
 
         function updateVolIcon() {
             const icon = document.getElementById('volIcon');
             if (isMuted || audio.volume === 0) {
-                // Ícone com X
                 icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`;
             } else {
-                // Ícone normal com ondinhas
                 icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>`;
             }
         }
@@ -706,28 +713,19 @@
         function toggleMute() {
             const slider = document.getElementById('volumeSlider');
             if (isMuted) {
-                isMuted = false;
-                slider.value = previousVolume;
-                audio.volume = previousVolume / 100;
+                isMuted = false; slider.value = previousVolume; audio.volume = previousVolume / 100;
             } else {
-                previousVolume = slider.value > 0 ? slider.value : 100; // Salva o volume antes de mutar
-                isMuted = true;
-                slider.value = 0;
-                audio.volume = 0;
+                previousVolume = slider.value > 0 ? slider.value : 100; 
+                isMuted = true; slider.value = 0; audio.volume = 0;
             }
-            updateProgressFill(slider);
-            updateVolIcon();
+            updateProgressFill(slider); updateVolIcon();
         }
 
         volumeSlider.addEventListener('input', function() { 
-            audio.volume = this.value / 100; 
-            updateProgressFill(this); 
-            // Tira do mudo automaticamente se o usuário arrastar o botão
-            if (this.value > 0 && isMuted) { isMuted = false; } 
-            else if (this.value == 0 && !isMuted) { isMuted = true; }
+            audio.volume = this.value / 100; updateProgressFill(this); 
+            if (this.value > 0 && isMuted) { isMuted = false; } else if (this.value == 0 && !isMuted) { isMuted = true; }
             updateVolIcon();
         });
-
 
         function updateFsIcon(isFullscreen) {
             const fsIcon = document.getElementById('fsIcon');
@@ -759,48 +757,40 @@
 
         let idleTimer;
         function resetIdleTimer() {
-            playerApp.classList.remove('idle');
-            clearTimeout(idleTimer);
+            playerApp.classList.remove('idle'); clearTimeout(idleTimer);
             idleTimer = setTimeout(() => { playerApp.classList.add('idle'); }, 1000); 
         }
         
-        playerApp.addEventListener('mousemove', resetIdleTimer);
-        playerApp.addEventListener('touchstart', resetIdleTimer);
-        playerApp.addEventListener('click', resetIdleTimer);
-        playerApp.addEventListener('mouseleave', () => { clearTimeout(idleTimer); playerApp.classList.add('idle'); });
+        playerApp.addEventListener('mousemove', resetIdleTimer); playerApp.addEventListener('touchstart', resetIdleTimer);
+        playerApp.addEventListener('click', resetIdleTimer); playerApp.addEventListener('mouseleave', () => { clearTimeout(idleTimer); playerApp.classList.add('idle'); });
 
-        // Tira o foco do botão clicado para não bugar o atalho do "Espaço"
-        document.addEventListener('click', function(e) {
-            const btn = e.target.closest('button');
-            if(btn) btn.blur();
+        // Tira o foco dos botões ao clicar para o atalho de espaço funcionar livremente
+        document.addEventListener('click', function(e) { const btn = e.target.closest('button'); if(btn) btn.blur(); });
+
+        // EVENTO INTELIGENTE DE CLIQUE NA TELA DA LETRA (1 CLICK PAUSA, 2 CLIQUES TELA CHEIA)
+        let clickTimer = null;
+        lyricsWindow.addEventListener('click', (e) => {
+            if (e.target.closest('.player-controls-wrapper')) return; 
+            
+            if (clickTimer === null) {
+                clickTimer = setTimeout(() => {
+                    clickTimer = null; togglePlay(); 
+                }, 250); 
+            } else {
+                clearTimeout(clickTimer); clickTimer = null; toggleFullScreen(); 
+            }
         });
 
         // Eventos de teclado blindados
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
-            
-            const key = e.key.toLowerCase();
-            const code = e.code;
-
-            if (code === 'Space' || key === ' ') {
-                e.preventDefault(); togglePlay();
-            } else if (code === 'ArrowRight' || key === 'arrowright') {
-                e.preventDefault(); nextTrack();
-            } else if (code === 'ArrowLeft' || key === 'arrowleft') {
-                e.preventDefault(); prevTrack();
-            } else if (code === 'KeyF' || key === 'f') {
-                e.preventDefault(); toggleFullScreen();
-            } else if (code === 'ArrowUp' || key === 'arrowup') {
-                e.preventDefault();
-                volumeSlider.value = Math.min(100, parseInt(volumeSlider.value) + 5); 
-                audio.volume = volumeSlider.value / 100; updateProgressFill(volumeSlider);
-                if(volumeSlider.value > 0 && isMuted) { isMuted = false; updateVolIcon(); }
-            } else if (code === 'ArrowDown' || key === 'arrowdown') {
-                e.preventDefault();
-                volumeSlider.value = Math.max(0, parseInt(volumeSlider.value) - 5); 
-                audio.volume = volumeSlider.value / 100; updateProgressFill(volumeSlider);
-                if(volumeSlider.value == 0 && !isMuted) { isMuted = true; updateVolIcon(); }
-            }
+            const key = e.key.toLowerCase(); const code = e.code;
+            if (code === 'Space' || key === ' ') { e.preventDefault(); togglePlay(); } 
+            else if (code === 'ArrowRight' || key === 'arrowright') { e.preventDefault(); nextTrack(); } 
+            else if (code === 'ArrowLeft' || key === 'arrowleft') { e.preventDefault(); prevTrack(); } 
+            else if (code === 'KeyF' || key === 'f') { e.preventDefault(); toggleFullScreen(); } 
+            else if (code === 'ArrowUp' || key === 'arrowup') { e.preventDefault(); volumeSlider.value = Math.min(100, parseInt(volumeSlider.value) + 5); audio.volume = volumeSlider.value / 100; updateProgressFill(volumeSlider); if(volumeSlider.value > 0 && isMuted) { isMuted = false; updateVolIcon(); } } 
+            else if (code === 'ArrowDown' || key === 'arrowdown') { e.preventDefault(); volumeSlider.value = Math.max(0, parseInt(volumeSlider.value) - 5); audio.volume = volumeSlider.value / 100; updateProgressFill(volumeSlider); if(volumeSlider.value == 0 && !isMuted) { isMuted = true; updateVolIcon(); } }
             resetIdleTimer();
         });
 
@@ -817,18 +807,13 @@
             const validAudioExts = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'];
             Array.from(files).forEach(file => {
                 const nameParts = file.name.split('.'); const ext = nameParts.pop().toLowerCase(); const baseName = nameParts.join('.');
-                if (validAudioExts.includes(ext)) { pendingFiles.audio[baseName] = file; } 
-                else if (ext === 'lrc' || ext === 'txt') { pendingFiles.lrcs[baseName] = file; }
-            });
-            processFiles();
+                if (validAudioExts.includes(ext)) { pendingFiles.audio[baseName] = file; } else if (ext === 'lrc' || ext === 'txt') { pendingFiles.lrcs[baseName] = file; }
+            }); processFiles();
         }
 
         // INICIALIZAÇÃO
         audio.volume = 1; updateProgressFill(volumeSlider);
-        window.onload = function() {
-            switchTab('ATUAL'); 
-            if(!document.getElementById('currentTitle').innerText.includes('ERRO')) { fetchPlaylist(); }
-        };
+        window.onload = function() { switchTab('ATUAL'); if(!document.getElementById('currentTitle').innerText.includes('ERRO')) { fetchPlaylist(); } };
     </script>
 </body>
 </html>
