@@ -151,11 +151,13 @@
         .playlist li.separator-item { background: transparent; border: 1px dashed #444; margin: 15px 0; padding: 5px 15px; }
         .playlist li.separator-item:hover { border-color: var(--highlight); background: rgba(255,204,0,0.05); }
         
+        /* Correção do Ícone de Arrastar e Espaço: SOMENTE NA ABA PLAYLIST */
         .drag-handle { display: none; margin-right: 10px; color: #555; cursor: grab; }
         body.tab-mode-playlist .drag-handle { display: block; }
         body.tab-mode-playlist .playlist li { cursor: grab; }
 
-        .track-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; justify-content: flex-start; text-align: left; }
+        /* Ajuste Fino: Alinhamento perfeito à esquerda (Sem pular espaços) */
+        .track-info { display: flex; flex-direction: column; flex: 1; pointer-events: none; overflow: hidden; justify-content: flex-start; text-align: left; }
         .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; cursor: text; }
         
         .rename-input { background: #000; border: 1px solid var(--highlight); color: #fff; padding: 2px 6px; border-radius: 4px; font-family: inherit; font-size: 0.9rem; font-weight: 700; width: 100%; max-width: 250px; outline: none; }
@@ -193,9 +195,9 @@
         .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 20px; }
         .editor-header h2 { margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--highlight); display: flex; align-items: center; gap: 10px; }
         
-        .editor-workspace { flex: 1; display: flex; gap: 20px; min-height: 0; flex-direction: column; }
+        .editor-workspace { flex: 1; display: flex; gap: 10px; min-height: 0; flex-direction: column; }
         
-        #edInitialView { display: flex; gap: 20px; width: 100%; height: 100%; }
+        #edInitialView { display: flex; width: 100%; flex: 1; }
         .editor-local-drop { flex: 1; border: 2px dashed #333; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #666; text-align: center; padding: 20px; transition: all 0.2s; cursor: pointer; }
         .editor-local-drop:hover, .editor-local-drop.dragover { border-color: var(--highlight); color: #aaa; background: rgba(255,204,0,0.05); }
         
@@ -347,7 +349,9 @@
                     <span id="tabSubtitle">Fila de Estudos</span>
                     <div class="header-actions">
                         <button class="btn-add" id="sortBtn" onclick="toggleSort()" style="display: none; width: 30px; padding: 0;"></button>
+                        
                         <button class="btn-add" id="next14Btn" onclick="selectNext14()" title="Avançar Lote (14 frases)" style="display: none; width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5"></polygon><polygon points="2 19 11 12 2 5"></polygon></svg></button>
+                        
                         <button class="btn-add" id="autoSortBtn" onclick="autoSortPlaylist()" title="Organização Automática" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
                         <button class="btn-add" onclick="showSeparatorModal()" title="Adicionar Separador Visual" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="4 4"></line></svg></button>
                         <button class="btn-add" onclick="handleUploadClick()" title="Adicionar Música">+</button>
@@ -370,18 +374,18 @@
 
             <div class="editor-workspace">
                 
-                <div id="edInitialView" style="display: flex; gap: 20px; width: 100%;">
-                    <div class="editor-local-drop" style="flex: 1; border-color: #555; background: rgba(255,255,255,0.02);" onclick="document.getElementById('edFixedInput').click()">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
-                        <div style="font-weight: bold; color: #fff;">1. Áudio Fixo (Prefixo)</div>
-                        <div style="font-size:0.8rem; margin-top:5px; color:#aaa;" id="edFixedName">Opcional. Clique para selecionar.</div>
-                        <input type="file" id="edFixedInput" accept=".mp3,.wav,.m4a,.aac" style="display:none;">
+                <div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 10px;">
+                    <div id="fixedAudioStatus" style="font-size: 0.85rem; color: #888; cursor: pointer; transition: color 0.2s;" onclick="if(event.target.tagName !== 'SPAN') document.getElementById('edFixedInput').click()">
+                        📎 Adicionar Áudio Fixo (Opcional)
                     </div>
+                    <input type="file" id="edFixedInput" accept=".mp3,.wav,.m4a,.aac" style="display:none;">
+                </div>
 
-                    <div class="editor-local-drop" style="flex: 2;" id="edDropzone" onclick="document.getElementById('edFileInput').click()">
+                <div id="edInitialView" style="display: flex; width: 100%; flex: 1;">
+                    <div class="editor-local-drop" id="edDropzone" style="flex: 1;" onclick="document.getElementById('edFileInput').click()">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                        <div style="font-weight: bold; margin-bottom: 5px; color: #fff;">2. Carregar Aula (.mp3 + .lrc)</div>
-                        <div>Arraste os arquivos juntos aqui ou clique</div>
+                        <div style="font-weight: bold; margin-bottom: 5px; color: #fff;">Carregar Aula para Fatiar</div>
+                        <div>Arraste o arquivo .MP3 e o .LRC juntos aqui ou clique</div>
                         <input type="file" id="edFileInput" multiple accept=".mp3,.wav,.m4a,.aac,.lrc,.txt" style="display:none;">
                     </div>
                 </div>
@@ -472,7 +476,7 @@
         }
 
         // ==========================================
-        // LÓGICA DO SONUS EDITOR (SANDBOX & MULTIPLEX)
+        // LÓGICA DO SONUS EDITOR E INDEXED DB
         // ==========================================
         let edFixedAudioFile = null;
         let edAudioFile = null;
@@ -480,7 +484,6 @@
         const edAudioPlayer = new Audio();
         let edPhrases = []; 
         let edPlayTimer = null;
-        
         let mergeStartIndex = null; 
         let edPhrasesUndoHistory = []; 
         let edPhrasesRedoHistory = []; 
@@ -489,6 +492,54 @@
         const edFileInput = document.getElementById('edFileInput');
         const edFixedInput = document.getElementById('edFixedInput');
 
+        // BANDO DE DADOS INTERNO PARA O ÁUDIO FIXO
+        let localDB;
+        const requestDB = indexedDB.open("SonusLocalDB", 1);
+        requestDB.onupgradeneeded = (e) => {
+            localDB = e.target.result;
+            if(!localDB.objectStoreNames.contains("config")) {
+                localDB.createObjectStore("config");
+            }
+        };
+        requestDB.onsuccess = (e) => {
+            localDB = e.target.result;
+            loadFixedAudio();
+        };
+
+        function saveFixedAudio(file) {
+            if(!localDB) return;
+            const tx = localDB.transaction("config", "readwrite");
+            tx.objectStore("config").put(file, "fixedAudioFile");
+        }
+
+        function loadFixedAudio() {
+            if(!localDB) return;
+            const tx = localDB.transaction("config", "readonly");
+            const req = tx.objectStore("config").get("fixedAudioFile");
+            req.onsuccess = () => {
+                if(req.result) {
+                    edFixedAudioFile = req.result;
+                    updateFixedAudioUI();
+                }
+            };
+        }
+
+        function removeFixedAudio(e) {
+            if(e) e.stopPropagation();
+            edFixedAudioFile = null;
+            if(localDB) {
+                const tx = localDB.transaction("config", "readwrite");
+                tx.objectStore("config").delete("fixedAudioFile");
+            }
+            document.getElementById('fixedAudioStatus').innerHTML = `📎 Adicionar Áudio Fixo (Opcional)`;
+        }
+
+        function updateFixedAudioUI() {
+            if(!edFixedAudioFile) return;
+            document.getElementById('fixedAudioStatus').innerHTML = `✅ Áudio fixo anexado: <span style="color:var(--highlight); margin-left:5px;">${edFixedAudioFile.name}</span> <span style="color:#ff3333; margin-left:10px; font-weight:bold;" title="Remover" onclick="removeFixedAudio(event)">✕</span>`;
+        }
+
+        // Eventos de Upload do Editor
         if(edDropzone) {
             edDropzone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.add('dragover'); });
             edDropzone.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.remove('dragover'); });
@@ -499,13 +550,12 @@
         }
         if(edFileInput) edFileInput.addEventListener('change', (e) => handleEditorFiles(e.target.files));
         
-        // Input do Áudio Fixo
         if(edFixedInput) {
             edFixedInput.addEventListener('change', (e) => {
                 if(e.target.files && e.target.files.length > 0) {
                     edFixedAudioFile = e.target.files[0];
-                    document.getElementById('edFixedName').innerText = edFixedAudioFile.name;
-                    document.getElementById('edFixedName').style.color = 'var(--highlight)';
+                    updateFixedAudioUI();
+                    saveFixedAudio(edFixedAudioFile);
                 }
             });
         }
@@ -746,11 +796,9 @@
 
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // Decodifica Áudio da Aula
                 const arrayBuffer = await edAudioFile.arrayBuffer();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-                // Decodifica Áudio Fixo (se existir)
                 let fixedBuffer = null;
                 if (edFixedAudioFile) {
                     const fixedArrayBuffer = await edFixedAudioFile.arrayBuffer();
@@ -768,7 +816,6 @@
                     const endOffset = Math.floor(ph.end * audioBuffer.sampleRate);
                     const frameCount = Math.max(1, endOffset - startOffset); 
 
-                    // Isola a Frase
                     const phraseBuffer = audioContext.createBuffer(audioBuffer.numberOfChannels, frameCount, audioBuffer.sampleRate);
                     for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
                         const channelData = audioBuffer.getChannelData(c);
@@ -779,7 +826,6 @@
                     let finalBuffer;
                     let finalLrcContent;
 
-                    // SE TEM ÁUDIO FIXO: Multiplica na ordem (Fixo + Frase + Fixo + Frase)
                     if (fixedBuffer) {
                         const maxChannels = Math.max(fixedBuffer.numberOfChannels, phraseBuffer.numberOfChannels);
                         const totalFrames = (fixedBuffer.length + phraseBuffer.length) * 2;
@@ -796,12 +842,10 @@
                             outData.set(pData, fixedBuffer.length + phraseBuffer.length + fixedBuffer.length);
                         }
 
-                        // Legenda Matemática
                         let tF = fixedBuffer.duration;
                         let tP = phraseBuffer.duration;
                         finalLrcContent = `${formatLrcTime(0)}...\n${formatLrcTime(tF)}${ph.text}\n${formatLrcTime(tF + tP)}...\n${formatLrcTime(tF * 2 + tP)}${ph.text}\n${formatLrcTime(tF * 2 + tP * 2)} `;
                     } else {
-                        // NORMAL (Sem áudio fixo)
                         finalBuffer = phraseBuffer;
                         finalLrcContent = `${formatLrcTime(0)}${ph.text}\n${formatLrcTime(phraseBuffer.duration)} `;
                     }
