@@ -114,6 +114,8 @@
         
         .btn-add { background: transparent; border: 1px solid #444; color: #ffffff; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.2s; display: flex; justify-content: center; align-items: center; height: 30px; }
         .btn-add:hover { background: #222; border-color: #666; color: var(--highlight); }
+        
+        .header-actions { display: flex; gap: 8px; align-items: center; }
 
         .playlist { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
         .playlist li { padding: 12px 15px; margin-bottom: 8px; background: #111; border: 1px solid #222; border-left: 4px solid transparent; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; cursor: pointer; }
@@ -220,7 +222,10 @@
 
             <div class="playlist-header">
                 <span id="tabSubtitle">Fila de Estudos</span>
-                <button class="btn-add" onclick="handleUploadClick()" title="Adicionar Música">+</button>
+                <div class="header-actions">
+                    <button class="btn-add" id="sortBtn" onclick="toggleSort()" style="display: none; width: 30px; padding: 0;"></button>
+                    <button class="btn-add" onclick="handleUploadClick()" title="Adicionar Música">+</button>
+                </div>
             </div>
 
             <ul class="playlist" id="playlist"></ul>
@@ -240,6 +245,7 @@
         let dbAllTracks = [], displayList = [], playbackQueue = [];
         let currentTrackId = null, isShuffle = false, repeatMode = 0, activeTab = 'PLAYLIST';
         let uploadTargetTab = 'PLAYLIST';
+        let sortDescending = true; // Controle da ordem
 
         const track = document.getElementById('lyricsTrack'), lyricsWindow = document.getElementById('lyricsWindow'), playerApp = document.getElementById('playerApp');
         const seekSlider = document.getElementById('seekSlider'), timeCurrent = document.getElementById('timeCurrent'), timeTotal = document.getElementById('timeTotal');
@@ -269,6 +275,29 @@
             }
         }
 
+        // ==========================================
+        // SISTEMA DE ORDENAÇÃO
+        // ==========================================
+        function updateSortIcon() {
+            const btn = document.getElementById('sortBtn');
+            if (!btn) return;
+            if (sortDescending) {
+                // Seta para baixo (Mais recentes primeiro)
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`;
+                btn.title = "Ordem: Mais Recentes";
+            } else {
+                // Seta para cima (Mais antigas primeiro)
+                btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>`;
+                btn.title = "Ordem: Mais Antigas";
+            }
+        }
+
+        function toggleSort() {
+            sortDescending = !sortDescending;
+            updateSortIcon();
+            processDisplayList();
+        }
+
         function switchTab(tabName) {
             activeTab = tabName;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -276,6 +305,9 @@
             
             document.body.className = (document.body.classList.contains('is-paused') ? 'is-paused ' : '') + 'tab-mode-' + tabName.toLowerCase();
             
+            // Ocultar botão de Sort na Playlist
+            document.getElementById('sortBtn').style.display = tabName === 'PLAYLIST' ? 'none' : 'flex';
+
             const titles = { 'PLAYLIST': 'Fila de Estudos', 'MUSIC': 'Acervo Geral', 'QUESTION': 'Dúvidas e Questões', 'PHRASES': 'Treino de Frases' };
             document.getElementById('tabSubtitle').innerText = titles[tabName];
             processDisplayList();
@@ -283,11 +315,14 @@
 
         function processDisplayList() {
             if (activeTab === 'MUSIC') {
-                displayList = dbAllTracks.filter(t => !t.is_question && !t.is_phrases && !t.is_atual).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                displayList = dbAllTracks.filter(t => !t.is_question && !t.is_phrases && !t.is_atual);
+                displayList.sort((a, b) => sortDescending ? new Date(b.created_at) - new Date(a.created_at) : new Date(a.created_at) - new Date(b.created_at));
             } else if (activeTab === 'QUESTION') {
-                displayList = dbAllTracks.filter(t => t.is_question).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                displayList = dbAllTracks.filter(t => t.is_question);
+                displayList.sort((a, b) => sortDescending ? new Date(b.created_at) - new Date(a.created_at) : new Date(a.created_at) - new Date(b.created_at));
             } else if (activeTab === 'PHRASES') {
-                displayList = dbAllTracks.filter(t => t.is_phrases).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                displayList = dbAllTracks.filter(t => t.is_phrases);
+                displayList.sort((a, b) => sortDescending ? new Date(b.created_at) - new Date(a.created_at) : new Date(a.created_at) - new Date(b.created_at));
             } else {
                 displayList = dbAllTracks.filter(t => t.is_atual).sort((a, b) => a.ordem - b.ordem);
             }
@@ -482,9 +517,6 @@
             pendingFiles = { audio: {}, lrcs: {} }; document.getElementById('uploadStatus').style.display = 'none'; toggleModal(false); document.getElementById('fileInput').value = ""; fetchPlaylist();
         }
 
-        // ==========================================
-        // CONFIGURAÇÃO DO TEMPO REAL (REALTIME SYNC)
-        // ==========================================
         function setupRealtimeSubscription() {
             if (!_supabase) return;
             _supabase.channel('custom-all-channel')
@@ -667,10 +699,11 @@
         };
 
         window.onload = () => { 
+            updateSortIcon(); // Inicializa o ícone
             switchTab('PLAYLIST'); 
             if(!document.getElementById('currentTitle').innerText.includes('ERRO')) {
                 fetchPlaylist().then(() => {
-                    setupRealtimeSubscription(); // Inicia o "radinho"
+                    setupRealtimeSubscription(); 
                 });
             }
         };
