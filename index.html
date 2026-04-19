@@ -139,7 +139,6 @@
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.75rem; font-weight: 700; color: #888; }
         .btn-add { background: transparent; border: 1px solid #444; color: #ffffff; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.2s; display: flex; justify-content: center; align-items: center; height: 30px; }
         .btn-add:hover { background: #222; border-color: #666; color: var(--highlight); }
-        
         .header-actions { display: flex; gap: 8px; align-items: center; }
 
         .playlist { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
@@ -147,19 +146,19 @@
         .playlist li:hover { border-color: #444; background: #1a1a1a; }
         .playlist li.active-track { background: #1a1a1a; border-left: 4px solid var(--highlight); border-color: #333; }
         .playlist li.active-track .track-title { color: var(--highlight); }
-        .playlist li.active-track .playing-icon { display: block; }
         .playlist li.sortable-ghost { opacity: 0.4; background: #222; }
         
         /* Estilo do Separador na Playlist */
         .playlist li.separator-item { background: transparent; border: 1px dashed #444; margin: 15px 0; padding: 5px 15px; }
         .playlist li.separator-item:hover { border-color: var(--highlight); background: rgba(255,204,0,0.05); }
         
-        /* Correção do Ícone de Arrastar e Espaço: SOMENTE NA ABA PLAYLIST */
+        /* Ícone de Arrastar (Somente Playlist) */
         .drag-handle { display: none; margin-right: 10px; color: #555; cursor: grab; }
         body.tab-mode-playlist .drag-handle { display: block; }
         body.tab-mode-playlist .playlist li { cursor: grab; }
 
-        .track-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; justify-content: center; }
+        /* Ajuste Fino: Alinhamento perfeito à esquerda (Sem pular espaços) */
+        .track-info { display: flex; flex-direction: column; flex: 1; pointer-events: none; overflow: hidden; justify-content: flex-start; text-align: left; }
         .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; cursor: text; }
         
         /* Input para Renomear Inline */
@@ -171,7 +170,9 @@
         .action-icon.delete-btn:hover { color: #ff3333; opacity: 1 !important; }
         .action-icon.check-btn:hover { color: var(--highlight); opacity: 1 !important; }
 
-        .playing-icon { display: none; width: 15px; height: 15px; position: relative; margin-right:10px; }
+        /* Ocupa o espaço mas fica invisível para não desalinhar as listas */
+        .playing-icon { display: block; opacity: 0; width: 15px; height: 15px; position: relative; margin-right: 10px; }
+        .playlist li.active-track .playing-icon { opacity: 1; }
         .playing-icon span { display: block; bottom: 0; width: 3px; height: 5px; background: var(--highlight); position: absolute; animation: bounce 1s infinite ease-in-out; }
         .playing-icon span:nth-child(1) { left: 0; animation-delay: 0s; }
         .playing-icon span:nth-child(2) { left: 6px; animation-delay: 0.2s; }
@@ -350,7 +351,7 @@
                     <div class="header-actions">
                         <button class="btn-add" id="sortBtn" onclick="toggleSort()" style="display: none; width: 30px; padding: 0;"></button>
                         
-                        <button class="btn-add" id="next14Btn" onclick="selectNext14()" title="Avançar para os próximos 14" style="display: none; width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5"></polygon><polygon points="2 19 11 12 2 5"></polygon></svg></button>
+                        <button class="btn-add" id="next14Btn" onclick="selectNext14()" title="Avançar Lote (14 frases)" style="display: none; width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5"></polygon><polygon points="2 19 11 12 2 5"></polygon></svg></button>
                         
                         <button class="btn-add" id="autoSortBtn" onclick="autoSortPlaylist()" title="Organização Automática" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
                         <button class="btn-add" onclick="showSeparatorModal()" title="Adicionar Separador Visual" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="4 4"></line></svg></button>
@@ -419,7 +420,7 @@
         let dbAllTracks = [], displayList = [], playbackQueue = [];
         let currentTrackId = null, isShuffle = false, repeatMode = 0, activeTab = 'PLAYLIST';
         let uploadTargetTab = 'PLAYLIST';
-        let sortDescending = false; // MAIS ANTIGOS PRIMEIRO POR PADRÃO
+        let sortDescending = false; // AGORA CARREGA OS MAIS ANTIGOS PRIMEIRO POR PADRÃO
 
         // Elementos DOM
         const track = document.getElementById('lyricsTrack'), lyricsWindow = document.getElementById('lyricsWindow'), playerApp = document.getElementById('playerApp');
@@ -789,7 +790,6 @@
             }
         }
 
-        // LÓGICA DE RENOMEAR INLINE (2 CLIQUES)
         function renameTrackInline(e, id) {
             e.stopPropagation(); 
             const track = dbAllTracks.find(t => t.id == id);
@@ -939,7 +939,7 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // NOVO LOTE DE ESTUDOS: Avança 14
+        // LÓGICA DE AVANÇAR OS 14 SEGUINTES
         async function selectNext14() {
             if (activeTab === 'PLAYLIST') return;
             if (!pedirSenha("avançar para o próximo lote de 14")) return;
@@ -963,26 +963,27 @@
 
             let updates = [];
             
-            // Limpa toda a playlist globalmente
+            // 1. Limpa todos da Playlist
             dbAllTracks.forEach(t => {
                 if (t.is_atual) {
                     t.is_atual = false;
-                    updates.push({ id: t.id, is_atual: false });
+                    updates.push({ id: t.id, is_atual: false, ordem: 0 });
                 }
             });
 
-            // Pega os próximos 14 da aba atual
+            // 2. Marca os próximos 14
             let count = 0;
             for (let i = startIndex; i < displayList.length && count < 14; i++) {
-                displayList[i].is_atual = true;
-                displayList[i].ordem = count;
+                let track = displayList[i];
+                track.is_atual = true;
+                track.ordem = count;
                 
-                let existingUpdate = updates.find(u => u.id === displayList[i].id);
+                let existingUpdate = updates.find(u => u.id === track.id);
                 if (existingUpdate) {
                     existingUpdate.is_atual = true;
                     existingUpdate.ordem = count;
                 } else {
-                    updates.push({ id: displayList[i].id, is_atual: true, ordem: count });
+                    updates.push({ id: track.id, is_atual: true, ordem: count });
                 }
                 count++;
             }
@@ -1114,8 +1115,10 @@
                     li.classList.add('separator-item');
                     li.innerHTML = `
                         <div class="drag-handle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
-                        <div style="color: #666; font-weight: bold; font-size: 0.85rem; min-width: 25px;">${index + 1}.</div>
-                        <div class="sep-text track-title" ondblclick="renameTrackInline(event, '${trackObj.id}')" style="cursor: text; flex:1; text-align:center; font-weight:800; color:var(--highlight); letter-spacing:2px;" title="Dê 2 cliques para renomear">${trackObj.title}</div>
+                        <div class="track-info" style="flex-direction: row; align-items: center; justify-content: flex-start; gap: 5px;">
+                            <span class="track-index" style="color: #666; font-weight: bold; font-size: 0.85rem; min-width: 25px;">${index + 1}.</span>
+                            <span class="sep-text track-title" ondblclick="renameTrackInline(event, '${trackObj.id}')" style="cursor: text; flex:1; text-align:center; font-weight:800; color:var(--highlight); letter-spacing:2px;" title="Dê 2 cliques para renomear">${trackObj.title}</span>
+                        </div>
                         <div class="track-actions">
                             <div class="action-icon delete-btn" onclick="deleteFromGeral('${trackObj.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
                         </div>
@@ -1148,7 +1151,7 @@
                     li.innerHTML = `
                         <div class="drag-handle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
                         <div class="playing-icon"><span></span><span></span><span></span></div>
-                        <div class="track-info" style="flex-direction: row; align-items: center; gap: 5px;">
+                        <div class="track-info" style="flex-direction: row; align-items: center; justify-content: flex-start; gap: 5px;">
                             <span class="track-index" style="color: #666; font-weight: bold; font-size: 0.85rem; min-width: 25px;">${index + 1}.</span>
                             <span class="track-title" ondblclick="renameTrackInline(event, '${trackObj.id}')" style="cursor: text;" title="Dê 2 cliques para renomear">${trackObj.title}</span>
                         </div>
