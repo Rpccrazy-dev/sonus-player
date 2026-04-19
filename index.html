@@ -139,11 +139,6 @@
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.75rem; font-weight: 700; color: #888; }
         .btn-add { background: transparent; border: 1px solid #444; color: #ffffff; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.2s; display: flex; justify-content: center; align-items: center; height: 30px; }
         .btn-add:hover { background: #222; border-color: #666; color: var(--highlight); }
-        
-        /* Destaque Botão Separador */
-        .btn-separator { background: rgba(255, 204, 0, 0.1) !important; border-color: rgba(255, 204, 0, 0.3) !important; color: var(--highlight) !important; }
-        .btn-separator:hover { background: rgba(255, 204, 0, 0.25) !important; border-color: var(--highlight) !important; }
-
         .header-actions { display: flex; gap: 8px; align-items: center; }
 
         .playlist { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
@@ -158,9 +153,10 @@
         .playlist li.separator-item { background: transparent; border: 1px dashed #444; margin: 15px 0; padding: 5px 15px; }
         .playlist li.separator-item:hover { border-color: var(--highlight); background: rgba(255,204,0,0.05); }
         
+        /* Correção do Ícone de Arrastar (Somente na aba Playlist) */
         .drag-handle { display: none; margin-right: 10px; color: #555; cursor: grab; }
-        body:not(.tab-mode-music) .drag-handle { display: block; }
-        body:not(.tab-mode-music) .playlist li { cursor: grab; }
+        body.tab-mode-playlist .drag-handle { display: block; }
+        body.tab-mode-playlist .playlist li { cursor: grab; }
 
         .track-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; justify-content: center; }
         .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; cursor: text; }
@@ -256,7 +252,7 @@
         }
     </style>
 </head>
-<body>
+<body class="tab-mode-playlist">
 
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-content">
@@ -352,8 +348,10 @@
                     <span id="tabSubtitle">Fila de Estudos</span>
                     <div class="header-actions">
                         <button class="btn-add" id="sortBtn" onclick="toggleSort()" style="display: none; width: 30px; padding: 0;"></button>
+                        <button class="btn-add" id="next14Btn" onclick="selectNext14()" title="Avançar para os próximos 14" style="display: none; width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5"></polygon><polygon points="2 19 11 12 2 5"></polygon></svg></button>
+                        
                         <button class="btn-add" id="autoSortBtn" onclick="autoSortPlaylist()" title="Organização Automática" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
-                        <button class="btn-add btn-separator" onclick="showSeparatorModal()" title="Adicionar Separador Visual" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="4 4"></line></svg></button>
+                        <button class="btn-add" onclick="showSeparatorModal()" title="Adicionar Separador Visual" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="4 4"></line></svg></button>
                         <button class="btn-add" onclick="handleUploadClick()" title="Adicionar Música">+</button>
                     </div>
                 </div>
@@ -419,7 +417,7 @@
         let dbAllTracks = [], displayList = [], playbackQueue = [];
         let currentTrackId = null, isShuffle = false, repeatMode = 0, activeTab = 'PLAYLIST';
         let uploadTargetTab = 'PLAYLIST';
-        let sortDescending = true; 
+        let sortDescending = false; // AGORA CARREGA OS MAIS ANTIGOS (NATURAL) PRIMEIRO
 
         // Elementos DOM
         const track = document.getElementById('lyricsTrack'), lyricsWindow = document.getElementById('lyricsWindow'), playerApp = document.getElementById('playerApp');
@@ -941,6 +939,85 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
+        // LÓGICA PARA AVANÇAR O LOTE DE 14 ÁUDIOS
+        async function selectNext14() {
+            if (activeTab === 'PLAYLIST') return;
+            if (!pedirSenha("avançar para os próximos 14 áudios")) return;
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            let lastSelectedIndex = -1;
+            for (let i = 0; i < displayList.length; i++) {
+                if (displayList[i].is_atual) {
+                    lastSelectedIndex = i;
+                }
+            }
+
+            let startIndex = lastSelectedIndex + 1;
+            
+            if (startIndex >= displayList.length) {
+                alert("Você já chegou ao fim da lista nesta aba!");
+                document.getElementById('loadingOverlay').style.display = 'none';
+                return;
+            }
+
+            let updates = [];
+            
+            // 1. Desmarca os atuais dessa aba
+            displayList.forEach(t => {
+                if (t.is_atual) {
+                    t.is_atual = false;
+                    updates.push({ id: t.id, is_atual: false });
+                }
+            });
+
+            // 2. Marca os próximos 14 (ignorando separadores se quiser, mas aqui marcamos a sequência de 14 linhas visíveis)
+            let count = 0;
+            let maxOrdem = Math.max(0, ...dbAllTracks.filter(t => t.is_atual).map(t => t.ordem));
+            if (maxOrdem === -Infinity) maxOrdem = 0;
+
+            for (let i = startIndex; i < displayList.length && count < 14; i++) {
+                displayList[i].is_atual = true;
+                displayList[i].ordem = maxOrdem + 1 + count;
+                
+                let existingUpdate = updates.find(u => u.id === displayList[i].id);
+                if (existingUpdate) {
+                    existingUpdate.is_atual = true;
+                    existingUpdate.ordem = displayList[i].ordem;
+                } else {
+                    updates.push({ id: displayList[i].id, is_atual: true, ordem: displayList[i].ordem });
+                }
+                count++;
+            }
+
+            // Sincroniza a base global com o que acabou de mudar na tela
+            updates.forEach(u => {
+                let track = dbAllTracks.find(t => t.id === u.id);
+                if (track) {
+                    track.is_atual = u.is_atual;
+                    if (u.ordem !== undefined) track.ordem = u.ordem;
+                }
+            });
+
+            processDisplayList();
+
+            try {
+                let fullUpdates = updates.map(u => {
+                    let t = dbAllTracks.find(trk => trk.id === u.id);
+                    return {
+                        id: t.id, title: t.title, audio_url: t.audioUrl, lrc_url: t.lrcUrl,
+                        is_atual: t.is_atual, is_question: t.is_question, is_phrases: t.is_phrases,
+                        ordem: t.ordem
+                    };
+                });
+                await _supabase.from('playlist').upsert(fullUpdates);
+            } catch (e) {
+                console.error("Erro ao avançar 14", e);
+            }
+            
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
         function updateSortIcon() {
             const btn = document.getElementById('sortBtn'); if (!btn) return;
             if (sortDescending) { btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`; btn.title = "Ordem: Mais Recentes"; } 
@@ -958,6 +1035,7 @@
             
             document.getElementById('sortBtn').style.display = tabName === 'PLAYLIST' ? 'none' : 'flex';
             document.getElementById('autoSortBtn').style.display = tabName === 'PLAYLIST' ? 'flex' : 'none';
+            document.getElementById('next14Btn').style.display = tabName === 'PLAYLIST' ? 'none' : 'flex';
 
             const titles = { 'PLAYLIST': 'Fila de Estudos', 'MUSIC': 'Acervo Geral', 'QUESTION': 'Dúvidas e Questões', 'PHRASES': 'Treino de Frases' };
             document.getElementById('tabSubtitle').innerText = titles[tabName];
