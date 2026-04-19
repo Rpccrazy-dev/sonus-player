@@ -50,7 +50,7 @@
             position: fixed;
             left: 0;
             top: 0;
-            width: 15px; /* Área invisível para encostar o mouse */
+            width: 15px;
             height: 100vh;
             background: transparent;
             border-right: none;
@@ -223,7 +223,10 @@
         .editor-list li:hover { border-color: #555; }
         .editor-list li.playing-now { border-color: var(--highlight); box-shadow: 0 0 15px rgba(255,204,0,0.1); }
         
-        .ed-content { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .ed-content { flex: 1; display: flex; align-items: center; gap: 15px; }
+        .ed-index { background: #333; color: var(--highlight); font-weight: 800; min-width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        
+        .ed-text-wrapper { display: flex; flex-direction: column; gap: 5px; flex: 1; }
         .ed-text { font-size: 1.1rem; font-weight: 600; color: #fff; }
         .ed-time { font-size: 0.75rem; color: #666; font-family: monospace; }
         
@@ -243,24 +246,24 @@
         .ed-btn.save { color: var(--highlight); border-color: rgba(255,204,0,0.3); }
         .ed-btn.save:hover { background: rgba(255,204,0,0.1); }
 
+        /* ==========================================
+           MODO CELULAR (RESPONSIVO E SEM MENU)
+           ========================================== */
         @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { position: relative; width: 100% !important; height: 60px !important; flex-direction: row; border-right: none; border-bottom: 1px solid var(--glass-border); background: rgba(5,5,5,0.95); }
-            .sidebar-content { width: 100%; flex-direction: row; opacity: 1; pointer-events: auto; }
-            .nav-top { border-bottom: none; border-right: 1px solid #222; }
-            .nav-menu { flex-direction: row; padding: 0 10px; flex: 1; overflow-x: auto; }
-            .sidebar.expanded { height: auto !important; }
+            .sidebar { display: none !important; } /* Esconde o Menu Lateral Fantasma */
             
-            .player-container, .editor-container { width: 100vw; height: calc(100dvh - 60px); border-radius: 0; border: none; }
-            .main-player { flex: 1 1 55%; padding: 20px 15px 10px 15px; }
-            .playlist-sidebar { flex: 1 1 45%; width: 100%; border-left: none; border-top: 1px solid var(--glass-border); padding: 15px; }
+            body { flex-direction: column; }
+            .app-wrapper { width: 100vw; height: 100dvh; margin: 0; padding: 0; }
+            
+            .player-container { flex-direction: column; width: 100vw; height: 100dvh; border-radius: 0; border: none; }
+            .main-player { flex: 1 1 55%; min-height: 0; padding: 20px 15px 10px 15px; }
+            .playlist-sidebar { flex: 1 1 45%; min-height: 0; width: 100%; border-left: none; border-top: 1px solid var(--glass-border); padding: 15px; }
+            
             .line { font-size: 1.6rem; height: 45px; } .song-titles h2 { font-size: 1.3rem; } 
             .action-buttons { width: 100%; justify-content: center; gap: 18px; }
             .right-controls { position: absolute; right: 0; top: 50%; transform: translateY(-50%); } 
             .volume-container { display: none; } 
-            
-            .editor-workspace { flex-direction: column; }
-            .editor-local-drop { flex: none; height: 120px; }
+            .player-container:fullscreen .player-controls-wrapper, .player-container.pseudo-fullscreen .player-controls-wrapper { padding: 40px 15px calc(20px + env(safe-area-inset-bottom)) 15px !important; background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 25%, #000000 50%, #000000 100%) !important; }
         }
     </style>
 </head>
@@ -374,7 +377,10 @@
                 <div class="editor-phrases-panel" id="edPanel">
                     <div class="editor-phrases-header">
                         <span id="edFileName">Arquivo.mp3</span>
-                        <button class="btn-add" onclick="clearEditor()" style="height: 25px; font-size: 0.8rem; border-color: #444; padding: 0 10px;">Limpar Tudo</button>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-add" id="undoBtn" onclick="undoEditorAction()" style="display:none; height: 25px; font-size: 0.8rem; border-color: #444; padding: 0 10px; color: #00d4ff;">Desfazer</button>
+                            <button class="btn-add" onclick="clearEditor()" style="height: 25px; font-size: 0.8rem; border-color: #444; padding: 0 10px;">Limpar Tudo</button>
+                        </div>
                     </div>
                     <ul class="editor-list" id="edList">
                         </ul>
@@ -441,7 +447,8 @@
         let edPhrases = []; 
         let edPlayTimer = null;
         
-        let mergeStartIndex = null; // Variável para controlar os "dois cliques" do Merge
+        let mergeStartIndex = null; 
+        let edPhrasesHistory = []; // Memória da Máquina do Tempo
 
         const edDropzone = document.getElementById('edDropzone');
         const edFileInput = document.getElementById('edFileInput');
@@ -454,10 +461,28 @@
         });
         edFileInput.addEventListener('change', (e) => handleEditorFiles(e.target.files));
 
+        function saveEditorHistory() {
+            // Salva um clone exato da lista atual antes de fazer a alteração
+            edPhrasesHistory.push(JSON.parse(JSON.stringify(edPhrases)));
+            document.getElementById('undoBtn').style.display = 'flex';
+        }
+
+        function undoEditorAction() {
+            if (edPhrasesHistory.length > 0) {
+                edPhrases = edPhrasesHistory.pop(); // Restaura a última versão
+                mergeStartIndex = null; // Cancela qualquer clique pendente
+                renderEditorList();
+                if (edPhrasesHistory.length === 0) {
+                    document.getElementById('undoBtn').style.display = 'none';
+                }
+            }
+        }
+
         function clearEditor() {
-            edAudioFile = null; edPhrases = []; mergeStartIndex = null;
+            edAudioFile = null; edPhrases = []; mergeStartIndex = null; edPhrasesHistory = [];
             if(edAudioUrl) { URL.revokeObjectURL(edAudioUrl); edAudioUrl = null; }
             edAudioPlayer.pause(); edAudioPlayer.src = "";
+            document.getElementById('undoBtn').style.display = 'none';
             document.getElementById('edDropzone').style.display = 'flex';
             document.getElementById('edPanel').style.display = 'none';
         }
@@ -533,8 +558,11 @@
 
                 li.innerHTML = `
                     <div class="ed-content">
-                        <div class="ed-text">${ph.text}</div>
-                        <div class="ed-time">${formatTime(ph.start)} → ${formatTime(ph.end)}</div>
+                        <div class="ed-index">${index + 1}</div>
+                        <div class="ed-text-wrapper">
+                            <div class="ed-text">${ph.text}</div>
+                            <div class="ed-time">${formatTime(ph.start)} → ${formatTime(ph.end)}</div>
+                        </div>
                     </div>
                     <div class="ed-actions">
                         <button class="ed-btn play" onclick="playEditorPhrase(${index})" title="Ouvir Fatiamento"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
@@ -550,40 +578,37 @@
         // Função de Juntar (Aguardando os dois cliques)
         function toggleMergeEditorPhrase(index) {
             if (mergeStartIndex === null) {
-                // PRIMEIRO CLIQUE: Apenas seleciona
                 mergeStartIndex = index;
                 renderEditorList();
             } else if (mergeStartIndex === index) {
-                // CLICOU NO MESMO LUGAR DE NOVO: Cancela a seleção
                 mergeStartIndex = null;
                 renderEditorList();
             } else {
-                // SEGUNDO CLIQUE: Faz a mágica acontecer!
+                saveEditorHistory(); // Salva o passado antes de alterar o futuro
+                
                 let start = Math.min(mergeStartIndex, index);
                 let end = Math.max(mergeStartIndex, index);
                 
                 let current = edPhrases[start];
                 let next = edPhrases[end];
                 
-                // Pega todo o texto do início ao fim
                 let combinedText = edPhrases.slice(start, end + 1).map(p => p.text).join(' ');
                 
-                // Atualiza a primeira frase com tudo
                 current.text = combinedText;
                 current.end = next.end; 
                 
-                // Deleta todas as frases intermediárias e a final
                 edPhrases.splice(start + 1, end - start);
                 
-                mergeStartIndex = null; // Reseta pro próximo uso
+                mergeStartIndex = null; 
                 renderEditorList();
             }
         }
 
         // Deletar da lista local
         function deleteEditorPhrase(index) {
+            saveEditorHistory(); // Salva o passado antes de apagar
             edPhrases.splice(index, 1);
-            mergeStartIndex = null; // Reseta se o usuário apagar no meio do merge
+            mergeStartIndex = null; 
             renderEditorList();
         }
 
