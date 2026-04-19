@@ -127,8 +127,8 @@
         body:not(.tab-mode-music) .drag-handle { display: block; }
         body:not(.tab-mode-music) .playlist li { cursor: grab; }
 
-        .track-info { display: flex; flex-direction: column; flex: 1; pointer-events: none; }
-        .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .track-info { display: flex; flex-direction: column; flex: 1; pointer-events: none; overflow: hidden; }
+        .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
         
         .track-actions { display: flex; gap: 8px; align-items: center; }
         .action-icon { cursor: pointer; transition: all 0.2s; color: #fff; display: flex; padding: 5px; border-radius: 4px; }
@@ -136,7 +136,6 @@
         .action-icon.delete-btn:hover { color: #ff3333; opacity: 1 !important; }
         .action-icon.check-btn:hover { color: var(--highlight); opacity: 1 !important; }
 
-        /* BARRINHAS CORRIGIDAS */
         .playing-icon { display: none; width: 15px; height: 15px; position: relative; margin-right:10px; }
         .playing-icon span { display: block; bottom: 0; width: 3px; height: 5px; background: var(--highlight); position: absolute; animation: bounce 1s infinite ease-in-out; }
         .playing-icon span:nth-child(1) { left: 0; animation-delay: 0s; }
@@ -220,7 +219,7 @@
             </div>
 
             <div class="playlist-header">
-                <span id="tabSubtitle">Sua Playlist Principal</span>
+                <span id="tabSubtitle">Fila de Estudos</span>
                 <button class="btn-add" onclick="handleUploadClick()" title="Adicionar Música">+</button>
             </div>
 
@@ -240,7 +239,7 @@
         const audio = new Audio();
         let dbAllTracks = [], displayList = [], playbackQueue = [];
         let currentTrackId = null, isShuffle = false, repeatMode = 0, activeTab = 'PLAYLIST';
-        let uploadTargetTab = 'MUSIC';
+        let uploadTargetTab = 'PLAYLIST';
 
         const track = document.getElementById('lyricsTrack'), lyricsWindow = document.getElementById('lyricsWindow'), playerApp = document.getElementById('playerApp');
         const seekSlider = document.getElementById('seekSlider'), timeCurrent = document.getElementById('timeCurrent'), timeTotal = document.getElementById('timeTotal');
@@ -258,7 +257,7 @@
         }
 
         function handleUploadClick() { 
-            uploadTargetTab = activeTab === 'PLAYLIST' ? 'MUSIC' : activeTab;
+            uploadTargetTab = activeTab; // AGORA OBEDECE A ABA ATUAL
             if(pedirSenha(`adicionar músicas na aba ${uploadTargetTab}`)) {
                 document.getElementById('uploadSubtitle').innerHTML = `Elas irão direto para a aba <strong>${uploadTargetTab}</strong>.`;
                 toggleModal(true);
@@ -279,7 +278,7 @@
 
         function processDisplayList() {
             if (activeTab === 'MUSIC') {
-                displayList = dbAllTracks.filter(t => !t.is_question && !t.is_phrases).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                displayList = dbAllTracks.filter(t => !t.is_question && !t.is_phrases && !t.is_atual).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             } else if (activeTab === 'QUESTION') {
                 displayList = dbAllTracks.filter(t => t.is_question).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             } else if (activeTab === 'PHRASES') {
@@ -388,7 +387,8 @@
             } catch(e) { alert("Erro ao excluir."); document.getElementById('loadingOverlay').style.display = 'none'; }
         }
 
-        function preventDefaults (e) { e.preventDefault(); e.stopPropagation(); }
+        // PREVENÇÃO RIGOROSA PARA ARRASTAR E SOLTAR
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             document.body.addEventListener(eventName, preventDefaults, false);
             document.getElementById('dropzone').addEventListener(eventName, preventDefaults, false);
@@ -398,7 +398,9 @@
         document.getElementById('dropzone').addEventListener('dragleave', () => { document.getElementById('dropzone').classList.remove('dragover'); });
         document.getElementById('dropzone').addEventListener('drop', (e) => {
             document.getElementById('dropzone').classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
         });
 
         document.getElementById('fileInput').onchange = (e) => { handleFiles(e.target.files); };
@@ -419,24 +421,35 @@
             const keys = Object.keys(pendingFiles.audio);
             const isQ = uploadTargetTab === 'QUESTION';
             const isP = uploadTargetTab === 'PHRASES';
+            const isA = uploadTargetTab === 'PLAYLIST';
             
             for (let i = 0; i < keys.length; i++) {
                 const baseName = keys[i]; const audioFile = pendingFiles.audio[baseName]; const lrcFile = pendingFiles.lrcs[baseName]; 
                 try {
-                    const audioPath = `music/${Date.now()}_${audioFile.name}`;
+                    // Limpando o nome do arquivo para evitar que o Supabase rejeite
+                    const safeAudioName = audioFile.name.replace(/[^a-zA-Z0-9.\-]/g, "_");
+                    const audioPath = `music/${Date.now()}_${safeAudioName}`;
                     await _supabase.storage.from('audio-files').upload(audioPath, audioFile);
                     const publicAudioUrl = _supabase.storage.from('audio-files').getPublicUrl(audioPath).data.publicUrl;
 
                     let publicLrcUrl = null;
                     if (lrcFile) {
-                        const lrcPath = `lyrics/${Date.now()}_${lrcFile.name}`;
+                        const safeLrcName = lrcFile.name.replace(/[^a-zA-Z0-9.\-]/g, "_");
+                        const lrcPath = `lyrics/${Date.now()}_${safeLrcName}`;
                         await _supabase.storage.from('audio-files').upload(lrcPath, lrcFile);
                         publicLrcUrl = _supabase.storage.from('audio-files').getPublicUrl(lrcPath).data.publicUrl;
                     }
 
+                    // Calcula a ordem se for para a Playlist
+                    let novaOrdem = 0;
+                    if (isA) {
+                        const ordens = dbAllTracks.filter(t => t.is_atual).map(t => t.ordem);
+                        novaOrdem = ordens.length > 0 ? Math.max(...ordens) + 1 : 0;
+                    }
+
                     await _supabase.from('playlist').insert([{
                         title: baseName, artist: '', audio_url: publicAudioUrl, lrc_url: publicLrcUrl,
-                        is_atual: false, is_question: isQ, is_phrases: isP
+                        is_atual: isA, is_question: isQ, is_phrases: isP, ordem: novaOrdem
                     }]);
                 } catch (error) { alert("Erro ao fazer upload: " + error.message); }
             }
@@ -446,14 +459,28 @@
         audio.addEventListener('play', () => document.body.classList.remove('is-paused'));
         audio.addEventListener('pause', () => document.body.classList.add('is-paused'));
 
-        async function loadTrack(idx, play) {
-            if (queueIndex < 0 || queueIndex >= playbackQueue.length) return;
-            const t = playbackQueue[idx]; currentTrackId = t.id;
+        // BUG CORRIGIDO (O ÍNDICE ESTAVA ERRADO NA FUNÇÃO)
+        async function loadTrack(idx, autoPlay = false) {
+            if (idx < 0 || idx >= playbackQueue.length) return;
+            const trackObj = playbackQueue[idx]; 
+            currentTrackId = trackObj.id; 
+            
             document.querySelectorAll('.playlist li').forEach(li => li.classList.remove('active-track'));
-            const activeLi = document.querySelector(`li[data-id="${t.id}"]`); if(activeLi) activeLi.classList.add('active-track');
-            document.getElementById('currentTitle').innerText = t.title; audio.src = t.audioUrl;
-            if (t.lrcUrl && t.songData.length === 0) { try { const r = await fetch(t.lrcUrl); if(r.ok) { t.songData = parseLRC(await r.text()); } } catch(e){} }
-            renderLyrics(); if(play) audio.play().then(()=>playBtn.innerHTML=pauseIconSVG).catch(()=>playBtn.innerHTML=playIconSVG);
+            const activeLi = document.querySelector(`.playlist li[data-id="${trackObj.id}"]`); 
+            if(activeLi) activeLi.classList.add('active-track');
+            
+            document.getElementById('currentTitle').innerText = trackObj.title; 
+            audio.src = trackObj.audioUrl;
+            
+            if (trackObj.lrcUrl && trackObj.songData.length === 0) { 
+                try { 
+                    const r = await fetch(trackObj.lrcUrl); 
+                    if(r.ok) { trackObj.songData = parseLRC(await r.text()); } 
+                } catch(e){} 
+            }
+            renderLyrics(); 
+            if(autoPlay) audio.play().then(()=>playBtn.innerHTML=pauseIconSVG).catch(()=>playBtn.innerHTML=playIconSVG);
+            else playBtn.innerHTML=playIconSVG;
         }
 
         function togglePlay() { if(audio.paused) audio.play().then(()=>playBtn.innerHTML=pauseIconSVG); else { audio.pause(); playBtn.innerHTML=playIconSVG; } }
