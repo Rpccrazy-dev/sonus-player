@@ -98,11 +98,11 @@
 
         .lyrics-window { flex: 1; position: relative; overflow: hidden; cursor: pointer; touch-action: manipulation; mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%) !important; }
         
-        /* CORTINA DAS LETRAS: O Fade In Automático */
+        /* CORTINA DAS LETRAS: Fade In Automático */
         .lyrics-track { 
             position: absolute; width: 100%; display: flex; flex-direction: column; align-items: center; 
             transition: transform 0.4s cubic-bezier(0.2, 0.4, 0.3, 1), opacity 0.5s ease; 
-            pointer-events: none; opacity: 0; /* Inicia Oculto */
+            pointer-events: none; opacity: 0; 
         }
         
         .line { height: 70px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: 800; text-align: center; color: var(--text-dimmed); transition: color 0.3s, transform 0.3s; width: 100%; }
@@ -139,6 +139,11 @@
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.75rem; font-weight: 700; color: #888; }
         .btn-add { background: transparent; border: 1px solid #444; color: #ffffff; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.2s; display: flex; justify-content: center; align-items: center; height: 30px; }
         .btn-add:hover { background: #222; border-color: #666; color: var(--highlight); }
+        
+        /* Destaque Botão Separador */
+        .btn-separator { background: rgba(255, 204, 0, 0.1) !important; border-color: rgba(255, 204, 0, 0.3) !important; color: var(--highlight) !important; }
+        .btn-separator:hover { background: rgba(255, 204, 0, 0.25) !important; border-color: var(--highlight) !important; }
+
         .header-actions { display: flex; gap: 8px; align-items: center; }
 
         .playlist { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
@@ -157,9 +162,12 @@
         body:not(.tab-mode-music) .drag-handle { display: block; }
         body:not(.tab-mode-music) .playlist li { cursor: grab; }
 
-        .track-info { display: flex; flex-direction: column; flex: 1; pointer-events: none; overflow: hidden; }
-        .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
+        .track-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; justify-content: center; }
+        .track-title { font-weight: 700; font-size: 0.9rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; cursor: text; }
         
+        /* Input para Renomear Inline */
+        .rename-input { background: #000; border: 1px solid var(--highlight); color: #fff; padding: 2px 6px; border-radius: 4px; font-family: inherit; font-size: 0.9rem; font-weight: 700; width: 100%; max-width: 250px; outline: none; }
+
         .track-actions { display: flex; gap: 8px; align-items: center; }
         .action-icon { cursor: pointer; transition: all 0.2s; color: #fff; display: flex; padding: 5px; border-radius: 4px; }
         .action-icon:hover { background: rgba(255,255,255,0.1); }
@@ -290,11 +298,11 @@
             <p style="font-size: 0.85rem; color: #888;">Crie um divisor visual para organizar sua lista.</p>
             
             <div style="display:flex; flex-direction:column; gap:15px; margin: 20px 0;">
-                <input type="number" id="sepPos" placeholder="Posição na lista (ex: 144)" style="padding:12px; background:#111; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
-                <input type="text" id="sepText" placeholder="Texto do Separador (ex: Aula 5 - Verbos)" style="padding:12px; background:#111; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
+                <input type="number" id="sepPos" placeholder="Posição exata (ex: 144)" style="padding:12px; background:#111; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
+                <input type="text" id="sepText" placeholder="Texto (ex: Aula 5 - Verbos)" style="padding:12px; background:#111; border:1px solid #333; color:#fff; border-radius:8px; outline:none;">
             </div>
             <div style="display:flex; gap:10px;">
-                <button class="ed-header-btn save-all" onclick="insertSeparator()" style="flex:1; justify-content:center;">Inserir Divisor</button>
+                <button class="ed-header-btn save-all" onclick="insertSeparator()" style="flex:1; justify-content:center;">Inserir</button>
                 <button class="ed-header-btn" onclick="document.getElementById('separatorModal').classList.remove('show')" style="flex:1; justify-content:center;">Cancelar</button>
             </div>
         </div>
@@ -345,7 +353,7 @@
                     <div class="header-actions">
                         <button class="btn-add" id="sortBtn" onclick="toggleSort()" style="display: none; width: 30px; padding: 0;"></button>
                         <button class="btn-add" id="autoSortBtn" onclick="autoSortPlaylist()" title="Organização Automática" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
-                        <button class="btn-add" onclick="showSeparatorModal()" title="Adicionar Separador Visual" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="4 4"></line></svg></button>
+                        <button class="btn-add btn-separator" onclick="showSeparatorModal()" title="Adicionar Separador Visual" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="4 4"></line></svg></button>
                         <button class="btn-add" onclick="handleUploadClick()" title="Adicionar Música">+</button>
                     </div>
                 </div>
@@ -721,7 +729,7 @@
 
                     const startOffset = Math.floor(ph.start * audioBuffer.sampleRate);
                     const endOffset = Math.floor(ph.end * audioBuffer.sampleRate);
-                    const frameCount = Math.max(1, endOffset - startOffset); // Previne falha de slice nulo
+                    const frameCount = Math.max(1, endOffset - startOffset); 
 
                     const slicedBuffer = audioContext.createBuffer(audioBuffer.numberOfChannels, frameCount, audioBuffer.sampleRate);
                     for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
@@ -758,7 +766,7 @@
                 btnSaveAll.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Salvar Todos`;
                 btnSaveAll.disabled = false;
 
-                alert(`MÁGICA CONCLUÍDA!\n\n${edPhrases.length} frases foram recortadas, convertidas em áudio, sincronizadas com legenda e enviadas para a sua aba PHRASES.`);
+                alert(`MÁGICA CONCLUÍDA!\n\n${edPhrases.length} frases foram enviadas para a sua aba PHRASES.`);
                 clearEditor(); 
 
             } catch(e) {
@@ -768,6 +776,7 @@
                 btnSaveAll.disabled = false;
             }
         }
+
 
         // ==========================================
         // CÓDIGO PADRÃO DO SONUS MUSIC E LÓGICA DE SEPARADORES
@@ -779,6 +788,42 @@
                 document.getElementById('uploadSubtitle').innerHTML = `Elas irão direto para a aba <strong>${uploadTargetTab}</strong>.`;
                 toggleModal(true);
             }
+        }
+
+        // LÓGICA DE RENOMEAR INLINE (2 CLIQUES)
+        function renameTrackInline(e, id) {
+            e.stopPropagation(); 
+            const track = dbAllTracks.find(t => t.id == id);
+            if(!track) return;
+            
+            const titleSpan = e.currentTarget;
+            const originalText = track.title;
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = originalText;
+            input.className = 'rename-input';
+            
+            titleSpan.replaceWith(input);
+            input.focus();
+            
+            const saveRename = async () => {
+                const newName = input.value.trim();
+                if(newName && newName !== originalText) {
+                    if(pedirSenha("renomear a faixa")) {
+                        track.title = newName;
+                        try { await _supabase.from('playlist').update({ title: track.title }).eq('id', id); } catch(err){}
+                        if(currentTrackId == id) document.getElementById('currentTitle').innerText = track.title;
+                    }
+                }
+                renderUIPlaylist(); 
+            };
+            
+            input.onblur = saveRename;
+            input.onkeydown = (ev) => { 
+                if(ev.key === 'Enter') input.blur(); 
+                if(ev.key === 'Escape') { input.value = originalText; input.blur(); }
+            };
         }
 
         function showSeparatorModal() {
@@ -802,9 +847,27 @@
                 let isQ = activeTab === 'QUESTION';
                 let isP = activeTab === 'PHRASES';
 
+                // MÁQUINA DO TEMPO: Falsificando a Data de Criação
+                let fakeDate = new Date();
+                if (displayList.length > 0) {
+                    let targetIndex = pos - 1;
+                    if (targetIndex <= 0) {
+                        let topDate = new Date(displayList[0].created_at).getTime();
+                        fakeDate = new Date(topDate + (sortDescending ? 1000 : -1000));
+                    } else if (targetIndex >= displayList.length) {
+                        let bottomDate = new Date(displayList[displayList.length - 1].created_at).getTime();
+                        fakeDate = new Date(bottomDate + (sortDescending ? -1000 : 1000));
+                    } else {
+                        let t1 = new Date(displayList[targetIndex - 1].created_at).getTime();
+                        let t2 = new Date(displayList[targetIndex].created_at).getTime();
+                        fakeDate = new Date((t1 + t2) / 2);
+                    }
+                }
+
                 const { data, error } = await _supabase.from('playlist').insert([{
                     title: txt, artist: '', audio_url: 'SEPARATOR', lrc_url: null,
-                    is_atual: isA, is_question: isQ, is_phrases: isP, ordem: 99999
+                    is_atual: isA, is_question: isQ, is_phrases: isP, ordem: 99999,
+                    created_at: fakeDate.toISOString()
                 }]).select();
 
                 if (error) throw error;
@@ -821,6 +884,7 @@
                     processDisplayList(); 
                     
                     let targetIndex = pos - 1;
+                    if(targetIndex < 0) targetIndex = 0;
                     if(targetIndex > displayList.length - 1) targetIndex = displayList.length - 1;
                     
                     let idxInDisplay = displayList.findIndex(t => t.id === newTrack.id);
@@ -976,9 +1040,8 @@
                     li.classList.add('separator-item');
                     li.innerHTML = `
                         <div class="drag-handle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
-                        <div class="sep-text" style="flex:1; text-align:center; font-weight:800; color:var(--highlight); letter-spacing:2px; padding:5px;">
-                            ${index + 1}. ${trackObj.title}
-                        </div>
+                        <div style="color: #666; font-weight: bold; font-size: 0.85rem; min-width: 25px;">${index + 1}.</div>
+                        <div class="sep-text track-title" ondblclick="renameTrackInline(event, '${trackObj.id}')" style="cursor: text; flex:1; text-align:center; font-weight:800; color:var(--highlight); letter-spacing:2px;" title="Dê 2 cliques para renomear">${trackObj.title}</div>
                         <div class="track-actions">
                             <div class="action-icon delete-btn" onclick="deleteFromGeral('${trackObj.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
                         </div>
@@ -986,10 +1049,15 @@
                 } else {
                     if (trackObj.id == currentTrackId) li.classList.add('active-track');
                     li.onclick = (e) => { 
-                        if (e.target.closest('.action-icon') || trackObj.audioUrl === 'SEPARATOR') return; 
-                        playbackQueue = displayList.filter(t => t.audioUrl !== 'SEPARATOR'); 
-                        let targetIdx = playbackQueue.findIndex(t => t.id === trackObj.id);
-                        if(targetIdx !== -1) loadTrack(targetIdx, true); 
+                        if (e.target.closest('.action-icon') || e.target.tagName === 'INPUT' || trackObj.audioUrl === 'SEPARATOR') return; 
+                        
+                        if (currentTrackId == trackObj.id) {
+                            togglePlay();
+                        } else {
+                            playbackQueue = displayList.filter(t => t.audioUrl !== 'SEPARATOR'); 
+                            let targetIdx = playbackQueue.findIndex(t => t.id === trackObj.id);
+                            if(targetIdx !== -1) loadTrack(targetIdx, true); 
+                        }
                     };
 
                     let actionHTML = '';
@@ -1003,7 +1071,15 @@
                         actionHTML += `<div class="action-icon delete-btn" onclick="deleteFromGeral('${trackObj.id}')" title="Excluir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>`;
                     }
 
-                    li.innerHTML = `<div class="drag-handle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div><div class="playing-icon"><span></span><span></span><span></span></div><div class="track-info"><span class="track-title">${index + 1}. ${trackObj.title}</span></div><div class="track-actions">${actionHTML}</div>`;
+                    li.innerHTML = `
+                        <div class="drag-handle"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
+                        <div class="playing-icon"><span></span><span></span><span></span></div>
+                        <div class="track-info" style="flex-direction: row; align-items: center; gap: 5px;">
+                            <span class="track-index" style="color: #666; font-weight: bold; font-size: 0.85rem; min-width: 25px;">${index + 1}.</span>
+                            <span class="track-title" ondblclick="renameTrackInline(event, '${trackObj.id}')" style="cursor: text;" title="Dê 2 cliques para renomear">${trackObj.title}</span>
+                        </div>
+                        <div class="track-actions">${actionHTML}</div>
+                    `;
                 }
                 playlistUI.appendChild(li);
             });
@@ -1205,10 +1281,10 @@
             track.innerHTML = ''; const t = playbackQueue.find(x=>x.id==currentTrackId);
             if(!t || !t.songData.length) { 
                 track.innerHTML = '<div class="line" style="font-size: 1.5rem;">[Nenhuma letra sincronizada encontrada]</div>'; 
-                track.style.opacity = 1; // Força exibição se não houver letra pra carregar
+                track.style.opacity = 1; 
                 positionTrack(0); return; 
             }
-            track.style.opacity = 0; // Oculta a cortina antes do áudio começar
+            track.style.opacity = 0; 
             t.songData.forEach(l => {
                 const d = document.createElement('div'); d.className='line'; d.id='line-'+l.id;
                 l.words.forEach((w,i)=>{ const s=document.createElement('span'); s.className='word'; s.id=`word-${l.id}-${i}`; s.innerText=w.w; d.appendChild(s); });
@@ -1236,7 +1312,6 @@
                 else { el.classList.remove('active'); l.words.forEach((w,wi)=>document.getElementById(`word-${l.id}-${wi}`).classList.remove('highlight')); }
             });
             
-            // Controle da Cortina de Letras
             if(act >= 0) {
                 track.style.opacity = 1;
                 positionTrack(act); 
