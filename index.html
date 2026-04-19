@@ -47,41 +47,14 @@
            MENU LATERAL FANTASMA (AUTO-HIDE)
            ========================================== */
         .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 15px;
-            height: 100vh;
-            background: transparent;
-            border-right: none;
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            z-index: 1000;
-            overflow: hidden;
-            white-space: nowrap;
+            position: fixed; left: 0; top: 0; width: 15px; height: 100vh; background: transparent; border-right: none;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 1000; overflow: hidden; white-space: nowrap;
         }
 
-        .sidebar-content {
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-            width: 250px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .sidebar:hover, .sidebar.expanded {
-            background: rgba(5, 5, 5, 0.95);
-            border-right: 1px solid var(--glass-border);
-            box-shadow: 10px 0 30px rgba(0,0,0,0.8);
-        }
-
+        .sidebar-content { opacity: 0; pointer-events: none; transition: opacity 0.2s ease; width: 250px; display: flex; flex-direction: column; height: 100%; }
+        .sidebar:hover, .sidebar.expanded { background: rgba(5, 5, 5, 0.95); border-right: 1px solid var(--glass-border); box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
         .sidebar:hover:not(.expanded) { width: 70px; }
-        
-        .sidebar:hover .sidebar-content, .sidebar.expanded .sidebar-content {
-            opacity: 1; pointer-events: auto;
-        }
-
+        .sidebar:hover .sidebar-content, .sidebar.expanded .sidebar-content { opacity: 1; pointer-events: auto; }
         .sidebar.expanded { width: 250px; }
         
         .nav-top { padding: 20px; display: flex; align-items: center; border-bottom: 1px solid #222; }
@@ -150,16 +123,13 @@
 
         /* PLAYLIST E ABAS */
         .playlist-sidebar { width: 400px; background: rgba(5, 5, 5, 0.6); border-left: 1px solid var(--glass-border); padding: 20px; display: flex; flex-direction: column; position: relative; min-height: 0; }
-        
         .tabs-container { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; overflow-x: auto; scrollbar-width: none; }
         .tabs-container::-webkit-scrollbar { display: none; }
-        
         .tab-btn { background: transparent; border: none; color: #555; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; cursor: pointer; padding: 10px 12px; transition: all 0.3s; position: relative; white-space: nowrap; }
         .tab-btn.active { color: var(--highlight); }
         .tab-btn.active::after { content: ''; position: absolute; bottom: -11px; left: 0; width: 100%; height: 2px; background: var(--highlight); }
         
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.75rem; font-weight: 700; color: #888; }
-        
         .btn-add { background: transparent; border: 1px solid #444; color: #ffffff; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.2s; display: flex; justify-content: center; align-items: center; height: 30px; }
         .btn-add:hover { background: #222; border-color: #666; color: var(--highlight); }
         .header-actions { display: flex; gap: 8px; align-items: center; }
@@ -205,7 +175,7 @@
 
 
         /* ==========================================
-           UI DO SONUS EDITOR
+           UI DO SONUS EDITOR (PALETA CLEAN BRANCO/AMARELO)
            ========================================== */
         .editor-container { display: none; flex-direction: column; padding: 30px; position: relative; }
         .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 20px; }
@@ -231,26 +201,34 @@
         .ed-time { font-size: 0.75rem; color: #666; font-family: monospace; }
         
         .ed-actions { display: flex; gap: 10px; }
-        .ed-btn { background: #222; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-        .ed-btn:hover { background: #333; }
         
-        .ed-btn.play { color: #00ff88; border-color: rgba(0,255,136,0.3); }
-        .ed-btn.play:hover { background: rgba(0,255,136,0.1); }
+        /* Botões do Editor (Brancos com Hover Amarelo/Destaques) */
+        .ed-btn { background: transparent; border: 1px solid #fff; color: #fff; padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .ed-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
         
-        .ed-btn.merge { color: #00d4ff; border-color: rgba(0,212,255,0.3); }
-        .ed-btn.merge:hover { background: rgba(0,212,255,0.1); }
+        .ed-btn.play { border-color: #fff; }
+        .ed-btn.play:hover { color: var(--highlight); border-color: var(--highlight); background: rgba(255,204,0,0.1); }
         
-        .ed-btn.delete-btn { color: #ff3333; border-color: rgba(255,51,51,0.3); }
-        .ed-btn.delete-btn:hover { background: rgba(255,51,51,0.1); }
+        .ed-btn.merge { border-color: #fff; }
+        .ed-btn.merge:hover { color: var(--highlight); border-color: var(--highlight); background: rgba(255,204,0,0.1); }
+        
+        .ed-btn.delete-btn { border-color: #555; color: #888; }
+        .ed-btn.delete-btn:hover { color: #ff3333; border-color: #ff3333; background: rgba(255,51,51,0.1); }
 
-        .ed-btn.save { color: var(--highlight); border-color: rgba(255,204,0,0.3); }
-        .ed-btn.save:hover { background: rgba(255,204,0,0.1); }
+        /* Botões do Topo (Editor Header) */
+        .ed-header-btn { background: transparent; border: 1px solid #fff; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .ed-header-btn:hover { background: rgba(255,255,255,0.1); }
+        
+        .ed-header-btn.save-all { background: #fff; color: #000; border-color: #fff; }
+        .ed-header-btn.save-all:hover { background: var(--highlight); border-color: var(--highlight); color: #000; }
+        
+        .ed-header-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: #555; color: #555; background: transparent; }
 
         /* ==========================================
            MODO CELULAR (RESPONSIVO E SEM MENU)
            ========================================== */
         @media (max-width: 768px) {
-            .sidebar { display: none !important; } /* Esconde o Menu Lateral Fantasma */
+            .sidebar { display: none !important; } 
             
             body { flex-direction: column; }
             .app-wrapper { width: 100vw; height: 100dvh; margin: 0; padding: 0; }
@@ -272,7 +250,7 @@
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-content">
             <div class="nav-top">
-                <button class="hamburger-btn" onclick="toggleSidebar()">
+                <button class="hamburger-btn" onclick="toggleSidebar(event)">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
             </div>
@@ -378,8 +356,17 @@
                     <div class="editor-phrases-header">
                         <span id="edFileName">Arquivo.mp3</span>
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn-add" id="undoBtn" onclick="undoEditorAction()" style="display:none; height: 25px; font-size: 0.8rem; border-color: #444; padding: 0 10px; color: #00d4ff;">Desfazer</button>
-                            <button class="btn-add" onclick="clearEditor()" style="height: 25px; font-size: 0.8rem; border-color: #444; padding: 0 10px;">Limpar Tudo</button>
+                            <button class="ed-header-btn" id="undoBtn" onclick="undoEditorAction()" disabled title="Desfazer Ação">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+                            </button>
+                            <button class="ed-header-btn" id="redoBtn" onclick="redoEditorAction()" disabled title="Refazer Ação">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path></svg>
+                            </button>
+                            <button class="ed-header-btn" onclick="clearEditor()">Limpar</button>
+                            <button class="ed-header-btn save-all" onclick="saveAllEditorPhrases()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                Salvar Todos
+                            </button>
                         </div>
                     </div>
                     <ul class="editor-list" id="edList">
@@ -415,8 +402,20 @@
         const pauseIconSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
 
         // ======= NAVEGAÇÃO LATERAL =======
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('expanded'); }
+        function toggleSidebar(e) { 
+            if(e) e.stopPropagation();
+            document.getElementById('sidebar').classList.toggle('expanded'); 
+        }
         
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.querySelector('.hamburger-btn');
+            if (sidebar.classList.contains('expanded') && !sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+                sidebar.classList.remove('expanded');
+            }
+        });
+
         function switchApp(appName) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if(appName === 'music') {
@@ -429,6 +428,7 @@
                 document.getElementById('editorApp').style.display = 'flex';
                 audio.pause(); 
             }
+            document.getElementById('sidebar').classList.remove('expanded');
         }
 
         function pedirSenha(acao) {
@@ -448,7 +448,9 @@
         let edPlayTimer = null;
         
         let mergeStartIndex = null; 
-        let edPhrasesHistory = []; // Memória da Máquina do Tempo
+        
+        let edPhrasesUndoHistory = []; 
+        let edPhrasesRedoHistory = []; 
 
         const edDropzone = document.getElementById('edDropzone');
         const edFileInput = document.getElementById('edFileInput');
@@ -462,27 +464,42 @@
         edFileInput.addEventListener('change', (e) => handleEditorFiles(e.target.files));
 
         function saveEditorHistory() {
-            // Salva um clone exato da lista atual antes de fazer a alteração
-            edPhrasesHistory.push(JSON.parse(JSON.stringify(edPhrases)));
-            document.getElementById('undoBtn').style.display = 'flex';
+            edPhrasesUndoHistory.push(JSON.parse(JSON.stringify(edPhrases)));
+            edPhrasesRedoHistory = []; // Apaga o futuro se fizer uma nova ação
+            updateHistoryButtons();
         }
 
         function undoEditorAction() {
-            if (edPhrasesHistory.length > 0) {
-                edPhrases = edPhrasesHistory.pop(); // Restaura a última versão
-                mergeStartIndex = null; // Cancela qualquer clique pendente
+            if (edPhrasesUndoHistory.length > 0) {
+                edPhrasesRedoHistory.push(JSON.parse(JSON.stringify(edPhrases)));
+                edPhrases = edPhrasesUndoHistory.pop(); 
+                mergeStartIndex = null; 
                 renderEditorList();
-                if (edPhrasesHistory.length === 0) {
-                    document.getElementById('undoBtn').style.display = 'none';
-                }
+                updateHistoryButtons();
             }
         }
 
+        function redoEditorAction() {
+            if (edPhrasesRedoHistory.length > 0) {
+                edPhrasesUndoHistory.push(JSON.parse(JSON.stringify(edPhrases)));
+                edPhrases = edPhrasesRedoHistory.pop(); 
+                mergeStartIndex = null; 
+                renderEditorList();
+                updateHistoryButtons();
+            }
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('undoBtn').disabled = edPhrasesUndoHistory.length === 0;
+            document.getElementById('redoBtn').disabled = edPhrasesRedoHistory.length === 0;
+        }
+
         function clearEditor() {
-            edAudioFile = null; edPhrases = []; mergeStartIndex = null; edPhrasesHistory = [];
+            edAudioFile = null; edPhrases = []; mergeStartIndex = null; 
+            edPhrasesUndoHistory = []; edPhrasesRedoHistory = [];
             if(edAudioUrl) { URL.revokeObjectURL(edAudioUrl); edAudioUrl = null; }
             edAudioPlayer.pause(); edAudioPlayer.src = "";
-            document.getElementById('undoBtn').style.display = 'none';
+            updateHistoryButtons();
             document.getElementById('edDropzone').style.display = 'flex';
             document.getElementById('edPanel').style.display = 'none';
         }
@@ -549,11 +566,10 @@
                 
                 // Lógica de Destacar o botão de Merge (2 Cliques)
                 let isMergeActive = (mergeStartIndex === index);
-                let mergeStyle = isMergeActive ? 'color: #000; background: #00d4ff; border-color: #00d4ff;' : '';
+                let mergeStyle = isMergeActive ? 'color: #000; background: var(--highlight); border-color: var(--highlight);' : '';
                 
                 let mergeBtnHTML = `<button class="ed-btn merge" style="${mergeStyle}" onclick="toggleMergeEditorPhrase(${index})" title="Selecionar para fundir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>`;
                 
-                // Botão Lixeira
                 let deleteBtnHTML = `<button class="ed-btn delete-btn" onclick="deleteEditorPhrase(${index})" title="Excluir da lista"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>`;
 
                 li.innerHTML = `
@@ -568,7 +584,6 @@
                         <button class="ed-btn play" onclick="playEditorPhrase(${index})" title="Ouvir Fatiamento"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
                         ${mergeBtnHTML}
                         ${deleteBtnHTML}
-                        <button class="ed-btn save" onclick="saveEditorPhrase(${index})" title="Salvar na aba Phrases"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
                     </div>
                 `;
                 list.appendChild(li);
@@ -584,7 +599,7 @@
                 mergeStartIndex = null;
                 renderEditorList();
             } else {
-                saveEditorHistory(); // Salva o passado antes de alterar o futuro
+                saveEditorHistory(); 
                 
                 let start = Math.min(mergeStartIndex, index);
                 let end = Math.max(mergeStartIndex, index);
@@ -606,7 +621,7 @@
 
         // Deletar da lista local
         function deleteEditorPhrase(index) {
-            saveEditorHistory(); // Salva o passado antes de apagar
+            saveEditorHistory();
             edPhrases.splice(index, 1);
             mergeStartIndex = null; 
             renderEditorList();
@@ -630,15 +645,10 @@
             }, durationMs);
         }
 
-        // O Robô Renomeador e Salvar
-        async function saveEditorPhrase(index) {
-            if (!pedirSenha("salvar e processar áudio")) return;
-            
-            const ph = edPhrases[index];
-            const li = document.getElementById(`ed-item-${ph.id}`);
-            const btn = li.querySelector('.save');
-            
-            btn.innerHTML = `<span style="font-size:12px;">Processando...</span>`;
+        // SALVAR TODOS (SIMULAÇÃO FAKE DO SANDBOX)
+        async function saveAllEditorPhrases() {
+            if(edPhrases.length === 0) return;
+            if (!pedirSenha("processar todos os áudios gerados")) return;
             
             try {
                 let nextNumber = 1;
@@ -652,13 +662,17 @@
                     }
                 });
 
-                const finalTitle = `----- ${nextNumber} ${ph.text}`;
-                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                alert(`Sucesso!\n\nSeu robô gerou o título:\n"${finalTitle}"\n\n(A tesoura Web Audio API definitiva será ligada na próxima fase!)`);
+                let simulatedNames = [];
+                edPhrases.forEach((ph, i) => {
+                    let num = nextNumber + i;
+                    simulatedNames.push(`----- ${num} ${ph.text}`);
+                });
+
+                alert(`SIMULAÇÃO BEM SUCEDIDA!\n\nNenhum arquivo foi salvo no banco de dados para evitar lixo durante o teste visual.\n\nSe o botão estivesse ativado, o sistema geraria ${edPhrases.length} arquivos.\n\nExemplos da Renomeação:\n1º ➜ ${simulatedNames[0]}\n2º ➜ ${simulatedNames[1] || '...'}\nÚltimo ➜ ${simulatedNames[simulatedNames.length-1]}`);
                 
             } catch(e) {
                 console.error(e);
-                btn.innerHTML = `Erro`;
+                alert("Erro na simulação.");
             }
         }
 
