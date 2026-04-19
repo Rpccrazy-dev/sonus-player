@@ -256,8 +256,14 @@
             return false;
         }
 
+        // AGORA A FUNÇÃO TOGGLE MODAL ESTÁ AQUI
+        function toggleModal(show) { 
+            if (show) uploadModal.classList.add('show'); 
+            else uploadModal.classList.remove('show'); 
+        }
+
         function handleUploadClick() { 
-            uploadTargetTab = activeTab; // AGORA OBEDECE A ABA ATUAL
+            uploadTargetTab = activeTab; 
             if(pedirSenha(`adicionar músicas na aba ${uploadTargetTab}`)) {
                 document.getElementById('uploadSubtitle').innerHTML = `Elas irão direto para a aba <strong>${uploadTargetTab}</strong>.`;
                 toggleModal(true);
@@ -387,7 +393,6 @@
             } catch(e) { alert("Erro ao excluir."); document.getElementById('loadingOverlay').style.display = 'none'; }
         }
 
-        // PREVENÇÃO RIGOROSA PARA ARRASTAR E SOLTAR
         function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             document.body.addEventListener(eventName, preventDefaults, false);
@@ -426,7 +431,6 @@
             for (let i = 0; i < keys.length; i++) {
                 const baseName = keys[i]; const audioFile = pendingFiles.audio[baseName]; const lrcFile = pendingFiles.lrcs[baseName]; 
                 try {
-                    // Limpando o nome do arquivo para evitar que o Supabase rejeite
                     const safeAudioName = audioFile.name.replace(/[^a-zA-Z0-9.\-]/g, "_");
                     const audioPath = `music/${Date.now()}_${safeAudioName}`;
                     await _supabase.storage.from('audio-files').upload(audioPath, audioFile);
@@ -440,7 +444,6 @@
                         publicLrcUrl = _supabase.storage.from('audio-files').getPublicUrl(lrcPath).data.publicUrl;
                     }
 
-                    // Calcula a ordem se for para a Playlist
                     let novaOrdem = 0;
                     if (isA) {
                         const ordens = dbAllTracks.filter(t => t.is_atual).map(t => t.ordem);
@@ -459,7 +462,6 @@
         audio.addEventListener('play', () => document.body.classList.remove('is-paused'));
         audio.addEventListener('pause', () => document.body.classList.add('is-paused'));
 
-        // BUG CORRIGIDO (O ÍNDICE ESTAVA ERRADO NA FUNÇÃO)
         async function loadTrack(idx, autoPlay = false) {
             if (idx < 0 || idx >= playbackQueue.length) return;
             const trackObj = playbackQueue[idx]; 
