@@ -407,7 +407,6 @@
             document.getElementById('sidebar').classList.toggle('expanded'); 
         }
         
-        // Fechar menu ao clicar fora
         document.addEventListener('click', (e) => {
             const sidebar = document.getElementById('sidebar');
             const hamburger = document.querySelector('.hamburger-btn');
@@ -439,7 +438,7 @@
         }
 
         // ==========================================
-        // LÓGICA DO SONUS EDITOR (SANDBOX)
+        // LÓGICA DO SONUS EDITOR (SANDBOX & EXPORTAÇÃO REAL)
         // ==========================================
         let edAudioFile = null;
         let edAudioUrl = null;
@@ -448,7 +447,6 @@
         let edPlayTimer = null;
         
         let mergeStartIndex = null; 
-        
         let edPhrasesUndoHistory = []; 
         let edPhrasesRedoHistory = []; 
 
@@ -465,7 +463,7 @@
 
         function saveEditorHistory() {
             edPhrasesUndoHistory.push(JSON.parse(JSON.stringify(edPhrases)));
-            edPhrasesRedoHistory = []; // Apaga o futuro se fizer uma nova ação
+            edPhrasesRedoHistory = []; 
             updateHistoryButtons();
         }
 
@@ -564,7 +562,6 @@
                 const li = document.createElement('li');
                 li.id = `ed-item-${ph.id}`;
                 
-                // Lógica de Destacar o botão de Merge (2 Cliques)
                 let isMergeActive = (mergeStartIndex === index);
                 let mergeStyle = isMergeActive ? 'color: #000; background: var(--highlight); border-color: var(--highlight);' : '';
                 
@@ -590,7 +587,6 @@
             });
         }
 
-        // Função de Juntar (Aguardando os dois cliques)
         function toggleMergeEditorPhrase(index) {
             if (mergeStartIndex === null) {
                 mergeStartIndex = index;
@@ -619,7 +615,6 @@
             }
         }
 
-        // Deletar da lista local
         function deleteEditorPhrase(index) {
             saveEditorHistory();
             edPhrases.splice(index, 1);
@@ -627,7 +622,6 @@
             renderEditorList();
         }
 
-        // Função de Falso Corte (Tocar apenas o trecho)
         function playEditorPhrase(index) {
             const ph = edPhrases[index];
             document.querySelectorAll('#edList li').forEach(li => li.classList.remove('playing-now'));
@@ -645,15 +639,48 @@
             }, durationMs);
         }
 
-        // SALVAR TODOS (SIMULAÇÃO FAKE DO SANDBOX)
+        // ==========================================
+        // MOTOR DE EXPORTAÇÃO REAL E CORTE FÍSICO
+        // ==========================================
+        function audioBufferToWav(buffer) {
+            let numOfChan = buffer.numberOfChannels, length = buffer.length * numOfChan * 2 + 44,
+                bufferArray = new ArrayBuffer(length), view = new DataView(bufferArray),
+                channels = [], i, sample, offset = 0, pos = 0;
+
+            function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+            function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+            setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157); 
+            setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
+            setUint32(buffer.sampleRate); setUint32(buffer.sampleRate * 2 * numOfChan); 
+            setUint16(numOfChan * 2); setUint16(16); setUint32(0x61746164); setUint32(length - pos - 4); 
+
+            for (i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
+
+            while (pos < length) {
+                for (i = 0; i < numOfChan; i++) {
+                    sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                    sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+                    view.setInt16(pos, sample, true);
+                    pos += 2;
+                }
+                offset++;
+            }
+            return new Blob([bufferArray], { type: "audio/wav" });
+        }
+
         async function saveAllEditorPhrases() {
             if(edPhrases.length === 0) return;
-            if (!pedirSenha("processar todos os áudios gerados")) return;
-            
+            if (!pedirSenha("fatiar fisicamente o áudio e upar para o Supabase")) return;
+
+            const btnSaveAll = document.querySelector('.ed-header-btn.save-all');
+            btnSaveAll.innerHTML = `<span style="font-size:12px;">Decodificando Áudio...</span>`;
+            btnSaveAll.disabled = true;
+
             try {
+                // 1. Descobrir a numeração (onde parou na aba PHRASES)
                 let nextNumber = 1;
                 const phraseTracks = dbAllTracks.filter(t => t.is_phrases);
-                
                 phraseTracks.forEach(t => {
                     const match = t.title.match(/^-+\s*(\d+)/);
                     if(match) {
@@ -662,17 +689,70 @@
                     }
                 });
 
-                let simulatedNames = [];
-                edPhrases.forEach((ph, i) => {
-                    let num = nextNumber + i;
-                    simulatedNames.push(`----- ${num} ${ph.text}`);
-                });
+                // 2. Decodificar o áudio original na memória (Web Audio API)
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const arrayBuffer = await edAudioFile.arrayBuffer();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-                alert(`SIMULAÇÃO BEM SUCEDIDA!\n\nNenhum arquivo foi salvo no banco de dados para evitar lixo durante o teste visual.\n\nSe o botão estivesse ativado, o sistema geraria ${edPhrases.length} arquivos.\n\nExemplos da Renomeação:\n1º ➜ ${simulatedNames[0]}\n2º ➜ ${simulatedNames[1] || '...'}\nÚltimo ➜ ${simulatedNames[simulatedNames.length-1]}`);
-                
+                // 3. Fatiar e Subir cada frase para a Nuvem
+                for (let i = 0; i < edPhrases.length; i++) {
+                    const ph = edPhrases[i];
+                    let num = nextNumber + i;
+                    const finalTitle = `----- ${num} ${ph.text}`;
+
+                    btnSaveAll.innerHTML = `<span style="font-size:12px;">Salvando ${i+1} de ${edPhrases.length}</span>`;
+
+                    // Corte Perfeito das Amostras (Samples)
+                    const startOffset = Math.floor(ph.start * audioBuffer.sampleRate);
+                    const endOffset = Math.floor(ph.end * audioBuffer.sampleRate);
+                    const frameCount = endOffset - startOffset;
+
+                    const slicedBuffer = audioContext.createBuffer(audioBuffer.numberOfChannels, frameCount, audioBuffer.sampleRate);
+                    for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
+                        const channelData = audioBuffer.getChannelData(c);
+                        const slicedData = slicedBuffer.getChannelData(c);
+                        for (let j = 0; j < frameCount; j++) {
+                            slicedData[j] = channelData[startOffset + j];
+                        }
+                    }
+
+                    // Converte pra formato físico (WAV) e gera File
+                    const wavBlob = audioBufferToWav(slicedBuffer);
+                    const wavFile = new File([wavBlob], `${Date.now()}_slice_${i}.wav`, { type: 'audio/wav' });
+
+                    // Cria o arquivo de Letra (LRC) zerado
+                    const sec = String(Math.ceil(ph.end - ph.start)).padStart(2, '0');
+                    const fakeLrcContent = `[00:00.00]${ph.text}\n[00:${sec}.00] `;
+                    const blobLrc = new Blob([fakeLrcContent], { type: 'text/plain' });
+                    const lrcFile = new File([blobLrc], `${Date.now()}_slice_${i}.lrc`, { type: 'text/plain' });
+
+                    // Uploads Supabase
+                    const audioPath = `music/${wavFile.name}`;
+                    await _supabase.storage.from('audio-files').upload(audioPath, wavFile);
+                    const publicAudioUrl = _supabase.storage.from('audio-files').getPublicUrl(audioPath).data.publicUrl;
+
+                    const lrcPath = `lyrics/${lrcFile.name}`;
+                    await _supabase.storage.from('audio-files').upload(lrcPath, lrcFile);
+                    const publicLrcUrl = _supabase.storage.from('audio-files').getPublicUrl(lrcPath).data.publicUrl;
+
+                    // Inserir na Tabela (Aba Phrases)
+                    await _supabase.from('playlist').insert([{
+                        title: finalTitle, artist: '', audio_url: publicAudioUrl, lrc_url: publicLrcUrl,
+                        is_atual: false, is_question: false, is_phrases: true, ordem: 0
+                    }]);
+                }
+
+                btnSaveAll.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Salvar Todos`;
+                btnSaveAll.disabled = false;
+
+                alert(`MÁGICA CONCLUÍDA!\n\n${edPhrases.length} frases foram recortadas, convertidas em áudio, sincronizadas com legenda e enviadas para a sua aba PHRASES.`);
+                clearEditor(); 
+
             } catch(e) {
                 console.error(e);
-                alert("Erro na simulação.");
+                alert("Erro ao processar: " + e.message);
+                btnSaveAll.innerHTML = `Erro!`;
+                btnSaveAll.disabled = false;
             }
         }
 
