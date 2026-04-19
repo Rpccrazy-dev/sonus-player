@@ -146,7 +146,7 @@
         @keyframes bounce { 0%, 100% { height: 5px; } 50% { height: 15px; } }
         body.is-paused .playing-icon span { animation: none !important; height: 3px !important; }
 
-        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 500; font-weight: bold; color: var(--highlight); display: none; }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 500; font-weight: bold; color: var(--highlight); display: none; flex-direction: column; gap: 15px; }
         .upload-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
         .upload-modal.show { opacity: 1; visibility: visible; }
         .upload-content { background: rgba(15, 15, 18, 0.95); border: 1px solid var(--glass-border); padding: 40px; border-radius: 16px; text-align: center; width: 550px; }
@@ -211,7 +211,9 @@
         </div>
 
         <div class="playlist-sidebar" id="sidebarArea">
-            <div id="loadingOverlay" class="loading-overlay">Sincronizando...</div>
+            <div id="loadingOverlay" class="loading-overlay">
+                <div>Sincronizando...</div>
+            </div>
             
             <div class="tabs-container">
                 <button class="tab-btn active" id="tabPlaylist" onclick="switchTab('PLAYLIST')">PLAYLIST</button>
@@ -224,6 +226,9 @@
                 <span id="tabSubtitle">Fila de Estudos</span>
                 <div class="header-actions">
                     <button class="btn-add" id="sortBtn" onclick="toggleSort()" style="display: none; width: 30px; padding: 0;"></button>
+                    <button class="btn-add" id="autoSortBtn" onclick="autoSortPlaylist()" title="Organização de Estudos (Grupos)" style="width: 30px; padding: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                    </button>
                     <button class="btn-add" onclick="handleUploadClick()" title="Adicionar Música">+</button>
                 </div>
             </div>
@@ -276,17 +281,75 @@
         }
 
         // ==========================================
-        // SISTEMA DE ORDENAÇÃO
+        // ORDENAÇÃO INTELIGENTE (CICLO DE ESTUDOS)
+        // ==========================================
+        async function autoSortPlaylist() {
+            let playlistTracks = dbAllTracks.filter(t => t.is_atual);
+            if(playlistTracks.length === 0) return;
+
+            let g1 = [], g2 = [], g3 = [];
+            
+            // Separação nas 3 caixas conforme as regras lógicas
+            playlistTracks.forEach(t => {
+                let tName = t.title.trim();
+                if (!tName.startsWith('-')) {
+                    g1.push(t); // Caixa 1: Não começa com traço
+                } else {
+                    let stripped = tName.replace(/^-+/, '').trim();
+                    if (/^\d+$/.test(stripped)) {
+                        g2.push(t); // Caixa 2: Traços + Apenas números
+                    } else {
+                        g3.push(t); // Caixa 3: Traços + Números + Textos (ou só textos)
+                    }
+                }
+            });
+
+            // Ordem natural dentro das caixas (1, 2, 10...)
+            const natSort = (a, b) => a.title.localeCompare(b.title, undefined, {numeric: true});
+            g1.sort(natSort);
+            g2.sort(natSort);
+            g3.sort(natSort);
+
+            // Costura das caixas de forma cíclica
+            let newOrder = [];
+            let maxLen = Math.max(g1.length, g2.length, g3.length);
+            for(let i = 0; i < maxLen; i++) {
+                if(g1[i]) newOrder.push(g1[i]);
+                if(g2[i]) newOrder.push(g2[i]);
+                if(g3[i]) newOrder.push(g3[i]);
+            }
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // Prepara a atualização pro servidor
+            const updates = newOrder.map((t, idx) => {
+                t.ordem = idx; 
+                return { 
+                    id: t.id, title: t.title, audio_url: t.audioUrl, lrc_url: t.lrcUrl, 
+                    is_atual: true, is_question: t.is_question, is_phrases: t.is_phrases, ordem: idx 
+                };
+            });
+
+            processDisplayList(); // Reflete na tela imediatamente
+            
+            try {
+                await _supabase.from('playlist').upsert(updates);
+            } catch(e) {
+                console.error("Erro ao salvar ordem automática", e);
+            }
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // ==========================================
+        // ORDENAÇÃO POR DATA (ABAS DE ACERVO)
         // ==========================================
         function updateSortIcon() {
             const btn = document.getElementById('sortBtn');
             if (!btn) return;
             if (sortDescending) {
-                // Seta para baixo (Mais recentes primeiro)
                 btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`;
                 btn.title = "Ordem: Mais Recentes";
             } else {
-                // Seta para cima (Mais antigas primeiro)
                 btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>`;
                 btn.title = "Ordem: Mais Antigas";
             }
@@ -305,8 +368,9 @@
             
             document.body.className = (document.body.classList.contains('is-paused') ? 'is-paused ' : '') + 'tab-mode-' + tabName.toLowerCase();
             
-            // Ocultar botão de Sort na Playlist
+            // Alterna os botões visíveis de acordo com a aba
             document.getElementById('sortBtn').style.display = tabName === 'PLAYLIST' ? 'none' : 'flex';
+            document.getElementById('autoSortBtn').style.display = tabName === 'PLAYLIST' ? 'flex' : 'none';
 
             const titles = { 'PLAYLIST': 'Fila de Estudos', 'MUSIC': 'Acervo Geral', 'QUESTION': 'Dúvidas e Questões', 'PHRASES': 'Treino de Frases' };
             document.getElementById('tabSubtitle').innerText = titles[tabName];
@@ -329,20 +393,25 @@
             renderUIPlaylist();
         }
 
+        // ==========================================
+        // ARRASTAR E SOLTAR (SORTABLE)
+        // ==========================================
         let sortable = new Sortable(playlistUI, {
             animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost',
             onEnd: async function (evt) {
-                if (activeTab === 'MUSIC' || evt.oldIndex === evt.newIndex) return;
+                if (activeTab !== 'PLAYLIST' || evt.oldIndex === evt.newIndex) return;
                 const item = displayList.splice(evt.oldIndex, 1)[0];
                 displayList.splice(evt.newIndex, 0, item);
                 
-                const col = { 'PLAYLIST': 'is_atual', 'QUESTION': 'is_question', 'PHRASES': 'is_phrases' }[activeTab];
                 const updates = displayList.map((track, index) => {
                     track.ordem = index;
-                    return { id: track.id, title: track.title, audio_url: track.audio_url, lrc_url: track.lrc_url, [col]: true, ordem: index };
+                    return { 
+                        id: track.id, title: track.title, audio_url: track.audioUrl, lrc_url: track.lrcUrl, 
+                        is_atual: true, is_question: track.is_question, is_phrases: track.is_phrases, ordem: index 
+                    };
                 });
                 renderUIPlaylist();
-                try { await _supabase.from('playlist').upsert(updates); } catch(e) {}
+                try { await _supabase.from('playlist').upsert(updates); } catch(e) { console.error(e); }
             }
         });
 
@@ -699,7 +768,7 @@
         };
 
         window.onload = () => { 
-            updateSortIcon(); // Inicializa o ícone
+            updateSortIcon(); 
             switchTab('PLAYLIST'); 
             if(!document.getElementById('currentTitle').innerText.includes('ERRO')) {
                 fetchPlaylist().then(() => {
