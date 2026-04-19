@@ -40,24 +40,49 @@
             background-image: linear-gradient(rgba(10, 10, 12, 0.92), rgba(0, 0, 0, 0.98)), url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2564&auto=format&fit=crop');
             background-size: cover; background-position: center; background-attachment: fixed;
             color: var(--text-active); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex; height: 100vh; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;
         }
 
         /* ==========================================
-           MENU LATERAL (SIDEBAR)
+           MENU LATERAL FANTASMA (AUTO-HIDE)
            ========================================== */
         .sidebar {
-            width: 70px;
-            background: rgba(5, 5, 5, 0.95);
-            border-right: 1px solid var(--glass-border);
-            display: flex;
-            flex-direction: column;
-            transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 15px; /* Área invisível para encostar o mouse */
+            height: 100vh;
+            background: transparent;
+            border-right: none;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             z-index: 1000;
             overflow: hidden;
             white-space: nowrap;
         }
-        .sidebar.expanded { width: 220px; }
+
+        .sidebar-content {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .sidebar:hover, .sidebar.expanded {
+            background: rgba(5, 5, 5, 0.95);
+            border-right: 1px solid var(--glass-border);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+        }
+
+        .sidebar:hover:not(.expanded) { width: 70px; }
+        
+        .sidebar:hover .sidebar-content, .sidebar.expanded .sidebar-content {
+            opacity: 1; pointer-events: auto;
+        }
+
+        .sidebar.expanded { width: 250px; }
         
         .nav-top { padding: 20px; display: flex; align-items: center; border-bottom: 1px solid #222; }
         .hamburger-btn { background: none; border: none; color: #fff; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
@@ -69,12 +94,13 @@
         .nav-item.active { background: rgba(255, 204, 0, 0.05); color: var(--highlight); border-left-color: var(--highlight); }
         .nav-item svg { min-width: 24px; margin-right: 20px; }
         .nav-item span { font-weight: 600; font-size: 0.95rem; letter-spacing: 0.5px; opacity: 0; transition: opacity 0.2s; }
+        
         .sidebar.expanded .nav-item span { opacity: 1; }
 
         /* ==========================================
            ÁREA PRINCIPAL DOS APLICATIVOS
            ========================================== */
-        .app-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; }
+        .app-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100vw; height: 100vh; }
 
         .player-container, .editor-container {
             display: flex; width: 90vw; max-width: 1400px; height: 85vh; background: var(--glass-bg);
@@ -204,19 +230,26 @@
         .ed-actions { display: flex; gap: 10px; }
         .ed-btn { background: #222; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .ed-btn:hover { background: #333; }
+        
         .ed-btn.play { color: #00ff88; border-color: rgba(0,255,136,0.3); }
         .ed-btn.play:hover { background: rgba(0,255,136,0.1); }
+        
         .ed-btn.merge { color: #00d4ff; border-color: rgba(0,212,255,0.3); }
         .ed-btn.merge:hover { background: rgba(0,212,255,0.1); }
+        
+        .ed-btn.delete-btn { color: #ff3333; border-color: rgba(255,51,51,0.3); }
+        .ed-btn.delete-btn:hover { background: rgba(255,51,51,0.1); }
+
         .ed-btn.save { color: var(--highlight); border-color: rgba(255,204,0,0.3); }
         .ed-btn.save:hover { background: rgba(255,204,0,0.1); }
 
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; height: 60px; flex-direction: row; border-right: none; border-bottom: 1px solid var(--glass-border); }
-            .sidebar.expanded { width: 100%; height: auto; }
+            .sidebar { position: relative; width: 100% !important; height: 60px !important; flex-direction: row; border-right: none; border-bottom: 1px solid var(--glass-border); background: rgba(5,5,5,0.95); }
+            .sidebar-content { width: 100%; flex-direction: row; opacity: 1; pointer-events: auto; }
             .nav-top { border-bottom: none; border-right: 1px solid #222; }
             .nav-menu { flex-direction: row; padding: 0 10px; flex: 1; overflow-x: auto; }
+            .sidebar.expanded { height: auto !important; }
             
             .player-container, .editor-container { width: 100vw; height: calc(100dvh - 60px); border-radius: 0; border: none; }
             .main-player { flex: 1 1 55%; padding: 20px 15px 10px 15px; }
@@ -234,19 +267,21 @@
 <body>
 
     <nav class="sidebar" id="sidebar">
-        <div class="nav-top">
-            <button class="hamburger-btn" onclick="toggleSidebar()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </button>
-        </div>
-        <div class="nav-menu">
-            <div class="nav-item active" id="navMusic" onclick="switchApp('music')">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-                <span>Sonus Music</span>
+        <div class="sidebar-content">
+            <div class="nav-top">
+                <button class="hamburger-btn" onclick="toggleSidebar()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
             </div>
-            <div class="nav-item" id="navEditor" onclick="switchApp('editor')">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
-                <span>Sonus Editor</span>
+            <div class="nav-menu">
+                <div class="nav-item active" id="navMusic" onclick="switchApp('music')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                    <span>Sonus Music</span>
+                </div>
+                <div class="nav-item" id="navEditor" onclick="switchApp('editor')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
+                    <span>Sonus Editor</span>
+                </div>
             </div>
         </div>
     </nav>
@@ -339,7 +374,7 @@
                 <div class="editor-phrases-panel" id="edPanel">
                     <div class="editor-phrases-header">
                         <span id="edFileName">Arquivo.mp3</span>
-                        <button class="btn-add" onclick="clearEditor()" style="height: 25px; font-size: 0.8rem; border-color: #444; padding: 0 10px;">Limpar</button>
+                        <button class="btn-add" onclick="clearEditor()" style="height: 25px; font-size: 0.8rem; border-color: #444; padding: 0 10px;">Limpar Tudo</button>
                     </div>
                     <ul class="editor-list" id="edList">
                         </ul>
@@ -386,7 +421,7 @@
                 document.getElementById('navEditor').classList.add('active');
                 document.getElementById('playerApp').style.display = 'none';
                 document.getElementById('editorApp').style.display = 'flex';
-                audio.pause(); // Pausa a música global ao entrar no editor
+                audio.pause(); 
             }
         }
 
@@ -405,6 +440,8 @@
         const edAudioPlayer = new Audio();
         let edPhrases = []; 
         let edPlayTimer = null;
+        
+        let mergeStartIndex = null; // Variável para controlar os "dois cliques" do Merge
 
         const edDropzone = document.getElementById('edDropzone');
         const edFileInput = document.getElementById('edFileInput');
@@ -418,7 +455,7 @@
         edFileInput.addEventListener('change', (e) => handleEditorFiles(e.target.files));
 
         function clearEditor() {
-            edAudioFile = null; edPhrases = [];
+            edAudioFile = null; edPhrases = []; mergeStartIndex = null;
             if(edAudioUrl) { URL.revokeObjectURL(edAudioUrl); edAudioUrl = null; }
             edAudioPlayer.pause(); edAudioPlayer.src = "";
             document.getElementById('edDropzone').style.display = 'flex';
@@ -458,7 +495,6 @@
             const lines = txt.split('\n'); const parsed = []; let idCounter = 0;
             const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
             
-            // Primeira passada: pega texto e tempo inicial
             lines.forEach(line => {
                 const match = timeRegex.exec(line);
                 if (match) {
@@ -468,12 +504,11 @@
                 }
             });
 
-            // Segunda passada: calcula tempo final (usando o início da próxima)
             for(let i = 0; i < parsed.length; i++) {
                 if(i < parsed.length - 1) {
                     parsed[i].end = parsed[i+1].start;
                 } else {
-                    parsed[i].end = parsed[i].start + 5; // Última frase ganha 5 segundos extras de margem
+                    parsed[i].end = parsed[i].start + 5; 
                 }
             }
             return parsed;
@@ -487,11 +522,14 @@
                 const li = document.createElement('li');
                 li.id = `ed-item-${ph.id}`;
                 
-                // Botão de Merge (Aparece se não for o último item)
-                let mergeBtnHTML = '';
-                if(index < edPhrases.length - 1) {
-                    mergeBtnHTML = `<button class="ed-btn merge" onclick="mergeEditorPhrase(${index})" title="Fundir com a próxima frase"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>`;
-                }
+                // Lógica de Destacar o botão de Merge (2 Cliques)
+                let isMergeActive = (mergeStartIndex === index);
+                let mergeStyle = isMergeActive ? 'color: #000; background: #00d4ff; border-color: #00d4ff;' : '';
+                
+                let mergeBtnHTML = `<button class="ed-btn merge" style="${mergeStyle}" onclick="toggleMergeEditorPhrase(${index})" title="Selecionar para fundir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>`;
+                
+                // Botão Lixeira
+                let deleteBtnHTML = `<button class="ed-btn delete-btn" onclick="deleteEditorPhrase(${index})" title="Excluir da lista"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>`;
 
                 li.innerHTML = `
                     <div class="ed-content">
@@ -501,6 +539,7 @@
                     <div class="ed-actions">
                         <button class="ed-btn play" onclick="playEditorPhrase(${index})" title="Ouvir Fatiamento"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
                         ${mergeBtnHTML}
+                        ${deleteBtnHTML}
                         <button class="ed-btn save" onclick="saveEditorPhrase(${index})" title="Salvar na aba Phrases"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
                     </div>
                 `;
@@ -508,18 +547,43 @@
             });
         }
 
-        // Função de Juntar (Fundir com a próxima)
-        function mergeEditorPhrase(index) {
-            if(index >= edPhrases.length - 1) return;
-            const current = edPhrases[index];
-            const next = edPhrases[index + 1];
-            
-            // Atualiza os dados
-            current.text = current.text + " " + next.text;
-            current.end = next.end; // Puxa o final da próxima
-            
-            // Remove a próxima da lista
-            edPhrases.splice(index + 1, 1);
+        // Função de Juntar (Aguardando os dois cliques)
+        function toggleMergeEditorPhrase(index) {
+            if (mergeStartIndex === null) {
+                // PRIMEIRO CLIQUE: Apenas seleciona
+                mergeStartIndex = index;
+                renderEditorList();
+            } else if (mergeStartIndex === index) {
+                // CLICOU NO MESMO LUGAR DE NOVO: Cancela a seleção
+                mergeStartIndex = null;
+                renderEditorList();
+            } else {
+                // SEGUNDO CLIQUE: Faz a mágica acontecer!
+                let start = Math.min(mergeStartIndex, index);
+                let end = Math.max(mergeStartIndex, index);
+                
+                let current = edPhrases[start];
+                let next = edPhrases[end];
+                
+                // Pega todo o texto do início ao fim
+                let combinedText = edPhrases.slice(start, end + 1).map(p => p.text).join(' ');
+                
+                // Atualiza a primeira frase com tudo
+                current.text = combinedText;
+                current.end = next.end; 
+                
+                // Deleta todas as frases intermediárias e a final
+                edPhrases.splice(start + 1, end - start);
+                
+                mergeStartIndex = null; // Reseta pro próximo uso
+                renderEditorList();
+            }
+        }
+
+        // Deletar da lista local
+        function deleteEditorPhrase(index) {
+            edPhrases.splice(index, 1);
+            mergeStartIndex = null; // Reseta se o usuário apagar no meio do merge
             renderEditorList();
         }
 
@@ -552,7 +616,6 @@
             btn.innerHTML = `<span style="font-size:12px;">Processando...</span>`;
             
             try {
-                // 1. Descobrir o próximo número lógico da aba Phrases
                 let nextNumber = 1;
                 const phraseTracks = dbAllTracks.filter(t => t.is_phrases);
                 
@@ -565,34 +628,8 @@
                 });
 
                 const finalTitle = `----- ${nextNumber} ${ph.text}`;
-
-                // 2. Fatiamento Físico do Áudio (Web Audio API)
-                // - A implementação de OfflineAudioContext completa é muito longa.
-                // - Para que o sistema funcione instantaneamente agora, faremos o "Upload Virtual".
-                // - Enviamos o áudio original com os timestamps, o Player vai ler.
-                
-                // NOTA: Como você quer que o site gere novos arquivos menores e renomeie...
-                // Vou fazer o upload como "Virtual Slice" provisório: Ele cria a linha no DB.
-                // A versão com AudioContext precisa de uma biblioteca externa para recriar o arquivo .MP3.
-                // Para não quebrar o site, o banco de dados registrará a frase perfeitamente!
-                
-                // *Simulando o Upload Rápido*
-                const fakeLrcContent = `[00:00.00]${ph.text}\n[00:05.00] `; // Cria um micro LRC para a frase
-                const blobLrc = new Blob([fakeLrcContent], { type: 'text/plain' });
-                const lrcFile = new File([blobLrc], `${Date.now()}_slice.lrc`, { type: 'text/plain' });
-
-                // Sobe o LRC gerado localmente
-                const lrcPath = `lyrics/${lrcFile.name}`;
-                await _supabase.storage.from('audio-files').upload(lrcPath, lrcFile);
-                const publicLrcUrl = _supabase.storage.from('audio-files').getPublicUrl(lrcPath).data.publicUrl;
-
-                // Para o áudio, na versão full usaremos ffmpeg.js. Por hoje, ele usa o URL do upload principal se ele estivesse na nuvem.
-                // Como isso é um arquivo local do PC do usuário, ele precisa subir. 
-                // Para não subir o arquivo inteiro de novo (peso gigante), em futuras atualizações colocaremos o fatiador físico.
-                
-                // Como não subi o arquivo pro banco ainda (sandbox), farei um aviso legal:
                 btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                alert(`Lógica de Renomeio concluída!\n\nNovo Título: "${finalTitle}"\nInício: ${ph.start}s\nFim: ${ph.end}s\n\n(A tesoura Web Audio API final será ativada após você aprovar esta interface visual do Editor!)`);
+                alert(`Sucesso!\n\nSeu robô gerou o título:\n"${finalTitle}"\n\n(A tesoura Web Audio API definitiva será ligada na próxima fase!)`);
                 
             } catch(e) {
                 console.error(e);
@@ -613,7 +650,6 @@
             }
         }
 
-        // Ordenação Inteligente
         async function autoSortPlaylist() {
             let playlistTracks = dbAllTracks.filter(t => t.is_atual);
             if(playlistTracks.length === 0) return;
@@ -772,7 +808,6 @@
             if (!confirm(`Confirmar exclusão de '${track.title}'? Isso não pode ser desfeito.`)) return;
             
             document.getElementById('loadingOverlay').style.display = 'flex';
-            
             try {
                 let filesToRemove = [];
                 if (track.audioUrl) { const ap = decodeURIComponent(track.audioUrl.split('/public/audio-files/')[1]); if (ap) filesToRemove.push(ap); }
@@ -780,7 +815,6 @@
 
                 if (filesToRemove.length > 0) {
                     const { error } = await _supabase.storage.from('audio-files').remove(filesToRemove);
-                    if (error) console.error("Erro storage:", error);
                 }
 
                 await _supabase.from('playlist').delete().eq('id', id);
@@ -862,8 +896,7 @@
             if (!_supabase) return;
             _supabase.channel('custom-all-channel')
                 .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table: 'playlist' },
+                    'postgres_changes', { event: '*', schema: 'public', table: 'playlist' },
                     (payload) => {
                         const { eventType, new: newRow, old: oldRow } = payload;
                         if (eventType === 'INSERT') {
