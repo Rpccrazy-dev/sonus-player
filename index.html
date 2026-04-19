@@ -440,8 +440,8 @@
         // AÇÕES DO BANCO DE DADOS
         // =====================================
         async function toggleAtualState(id, isAtual) {
-            // Acha a música
-            const track = dbAllTracks.find(t => t.id === id);
+            // Acha a música contornando o formato de texto/número
+            const track = dbAllTracks.find(t => t.id == id); 
             if (!track) return;
 
             track.is_atual = isAtual; // Atualiza local
@@ -463,7 +463,10 @@
         async function deleteFromGeral(id) {
             if (!pedirSenha("excluir esta música permanentemente do servidor")) return;
             
-            const track = dbAllTracks.find(t => t.id === id);
+            // Acha a música contornando o formato texto/número
+            const track = dbAllTracks.find(t => t.id == id);
+            if (!track) return;
+            
             if (!confirm(`Confirmar exclusão de '${track.title}'? Isso não pode ser desfeito.`)) return;
 
             loadingOverlay.style.display = 'flex';
@@ -473,10 +476,11 @@
                 await fetchPlaylist(); // Baixa a lista atualizada
                 
                 // Se a música apagada era a que estava tocando
-                if (currentTrackId === id) {
+                if (currentTrackId == id) {
                     audio.pause(); audio.src = ""; currentTrackId = null;
                     document.getElementById('currentTitle').innerText = "NENHUMA MÚSICA";
-                    track.innerHTML = ""; playBtn.innerHTML = playIconSVG;
+                    document.getElementById('lyricsTrack').innerHTML = ""; 
+                    playBtn.innerHTML = playIconSVG;
                 }
             } catch(e) { 
                 alert("Erro ao excluir."); loadingOverlay.style.display = 'none'; 
@@ -707,7 +711,7 @@
             const fsIcon = document.getElementById('fsIcon');
             if (isFullscreen) { fsIcon.innerHTML = `<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>`; } 
             else { fsIcon.innerHTML = `<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>`; }
-            setTimeout(() => positionTrack(audio.currentTime === 0 ? 0 : -1), 100); // Trigger recalc
+            setTimeout(() => positionTrack(audio.currentTime === 0 ? 0 : -1), 100); 
         }
 
         function toggleFullScreen() {
