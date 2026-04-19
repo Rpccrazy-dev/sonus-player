@@ -376,9 +376,6 @@
             try { await _supabase.from('playlist').update({ is_atual: isAtual, ordem: track.ordem }).eq('id', id); } catch(e) {}
         }
 
-        // ==========================================
-        // NOVA LIXEIRA INTELIGENTE COM LIMPEZA DE STORAGE
-        // ==========================================
         async function deleteFromGeral(id) {
             if (!pedirSenha("excluir permanentemente do servidor")) return;
             const track = dbAllTracks.find(t => t.id == id); if (!track) return;
@@ -483,6 +480,50 @@
                 } catch (error) { alert("Erro ao fazer upload: " + error.message); }
             }
             pendingFiles = { audio: {}, lrcs: {} }; document.getElementById('uploadStatus').style.display = 'none'; toggleModal(false); document.getElementById('fileInput').value = ""; fetchPlaylist();
+        }
+
+        // ==========================================
+        // CONFIGURAÇÃO DO TEMPO REAL (REALTIME SYNC)
+        // ==========================================
+        function setupRealtimeSubscription() {
+            if (!_supabase) return;
+            _supabase.channel('custom-all-channel')
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'playlist' },
+                    (payload) => {
+                        const { eventType, new: newRow, old: oldRow } = payload;
+                        
+                        if (eventType === 'INSERT') {
+                            if (!dbAllTracks.find(t => t.id === newRow.id)) {
+                                dbAllTracks.push({
+                                    id: newRow.id, title: newRow.title, artist: "",
+                                    audioUrl: newRow.audio_url, lrcUrl: newRow.lrc_url, 
+                                    is_atual: !!newRow.is_atual, is_question: !!newRow.is_question, is_phrases: !!newRow.is_phrases,
+                                    ordem: newRow.ordem || 0, created_at: newRow.created_at, songData: []
+                                });
+                            }
+                        } else if (eventType === 'UPDATE') {
+                            const track = dbAllTracks.find(t => t.id === newRow.id);
+                            if (track) {
+                                track.title = newRow.title;
+                                track.is_atual = !!newRow.is_atual;
+                                track.is_question = !!newRow.is_question;
+                                track.is_phrases = !!newRow.is_phrases;
+                                track.ordem = newRow.ordem || 0;
+                            }
+                        } else if (eventType === 'DELETE') {
+                            dbAllTracks = dbAllTracks.filter(t => t.id !== oldRow.id);
+                            if (currentTrackId == oldRow.id) {
+                                audio.pause(); audio.src = ""; currentTrackId = null;
+                                document.getElementById('currentTitle').innerText = "NENHUMA MÚSICA";
+                                document.getElementById('lyricsTrack').innerHTML = ""; playBtn.innerHTML = playIconSVG;
+                            }
+                        }
+                        processDisplayList();
+                    }
+                )
+                .subscribe();
         }
 
         audio.addEventListener('play', () => document.body.classList.remove('is-paused'));
@@ -625,7 +666,14 @@
             resetIdleTimer();
         };
 
-        window.onload = () => { switchTab('PLAYLIST'); if(!document.getElementById('currentTitle').innerText.includes('ERRO')) fetchPlaylist(); };
+        window.onload = () => { 
+            switchTab('PLAYLIST'); 
+            if(!document.getElementById('currentTitle').innerText.includes('ERRO')) {
+                fetchPlaylist().then(() => {
+                    setupRealtimeSubscription(); // Inicia o "radinho"
+                });
+            }
+        };
     </script>
 </body>
 </html>
