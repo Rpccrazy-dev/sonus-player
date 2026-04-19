@@ -75,7 +75,7 @@
            ========================================== */
         .app-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100vw; height: 100vh; }
 
-        .player-container, .editor-container {
+        .player-container, .editor-container, .capture-container {
             display: flex; width: 90vw; max-width: 1400px; height: 85vh; background: var(--glass-bg);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
             border-radius: 16px; box-shadow: 0 40px 100px rgba(0,0,0,0.95); overflow: hidden; transition: all 0.3s ease;
@@ -195,7 +195,7 @@
 
 
         /* ==========================================
-           UI DO SONUS EDITOR (PALETA CLEAN)
+           UI DO SONUS EDITOR
            ========================================== */
         .editor-container { display: none; flex-direction: column; padding: 30px; position: relative; }
         .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 20px; }
@@ -210,7 +210,6 @@
         .editor-phrases-panel { flex: 1; display: none; flex-direction: column; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid #222; overflow: hidden; position: relative; }
         .editor-phrases-header { padding: 15px 20px; background: #111; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 600; color: #888; }
         
-        /* BARRA DE PROGRESSO DO EDITOR */
         #edProgressBarContainer { display: none; width: 100%; height: 4px; background: #222; }
         #edProgressBar { width: 0%; height: 100%; background: var(--highlight); transition: width 0.2s ease-out; box-shadow: 0 0 10px var(--highlight); }
 
@@ -243,6 +242,35 @@
         .ed-header-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: #555; color: #555; background: transparent; }
 
         /* ==========================================
+           UI DO SONUS CAPTURE
+           ========================================== */
+        .capture-container { display: none; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .capture-wrapper { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px; }
+        .capture-title { font-size: 2rem; font-weight: 800; color: #fff; margin: 0; }
+        .capture-subtitle { font-size: 1rem; color: #888; margin: 0; max-width: 400px; line-height: 1.5; }
+        
+        .rec-btn { 
+            width: 120px; height: 120px; border-radius: 50%; background: #ff3333; border: 4px solid #fff; 
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); outline: none; box-shadow: 0 0 20px rgba(255, 51, 51, 0.4);
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .rec-btn::before {
+            content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #ff3333;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; display: none;
+        }
+        .rec-btn:hover { transform: scale(1.05); }
+        
+        .rec-btn.recording {
+            border-radius: 20px; transform: scale(0.9); background: #ff3333; border-color: transparent; animation: pulse-bg 1.5s infinite alternate;
+        }
+        .rec-btn.recording::before { display: block; }
+        
+        @keyframes pulse-ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        @keyframes pulse-bg { 0% { background: #ff3333; box-shadow: 0 0 20px rgba(255, 51, 51, 0.6); } 100% { background: #cc0000; box-shadow: 0 0 40px rgba(255, 51, 51, 0.8); } }
+
+        .capture-status { font-size: 1.2rem; font-weight: 700; color: var(--highlight); min-height: 30px; letter-spacing: 1px; }
+
+        /* ==========================================
            MODO CELULAR (RESPONSIVO E SEM MENU)
            ========================================== */
         @media (max-width: 768px) {
@@ -251,7 +279,7 @@
             body { flex-direction: column; }
             .app-wrapper { width: 100vw; height: 100dvh; margin: 0; padding: 0; }
             
-            .player-container { flex-direction: column; width: 100vw; height: 100dvh; border-radius: 0; border: none; }
+            .player-container, .capture-container { flex-direction: column; width: 100vw; height: 100dvh; border-radius: 0; border: none; }
             .main-player { flex: 1 1 55%; min-height: 0; padding: 20px 15px 10px 15px; }
             .playlist-sidebar { flex: 1 1 45%; min-height: 0; width: 100%; border-left: none; border-top: 1px solid var(--glass-border); padding: 15px; }
             
@@ -280,6 +308,10 @@
                 <div class="nav-item" id="navEditor" onclick="switchApp('editor')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>
                     <span>Sonus Editor</span>
+                </div>
+                <div class="nav-item" id="navCapture" onclick="switchApp('capture')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span>Sonus Capture</span>
                 </div>
             </div>
         </div>
@@ -359,9 +391,7 @@
                     <span id="tabSubtitle">Fila de Estudos</span>
                     <div class="header-actions">
                         <button class="btn-add" id="sortBtn" onclick="toggleSort()" style="display: none; width: 30px; padding: 0;"></button>
-                        
                         <button class="btn-add" id="next14Btn" onclick="selectNext14()" title="Avançar Lote (Próximas 14)" style="display: none; width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5"></polygon><polygon points="2 19 11 12 2 5"></polygon></svg></button>
-                        
                         <button class="btn-add" id="autoSortBtn" onclick="autoSortPlaylist()" title="Organização Automática" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
                         <button class="btn-add" onclick="showSeparatorModal()" title="Adicionar Separador Visual" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="4 4"></line></svg></button>
                         <button class="btn-add" onclick="handleUploadClick()" title="Adicionar Música">+</button>
@@ -383,7 +413,6 @@
             </div>
 
             <div class="editor-workspace">
-                
                 <div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 10px;">
                     <div id="fixedAudioStatus" style="font-size: 0.85rem; color: #888; cursor: pointer; transition: color 0.2s;" onclick="if(event.target.tagName !== 'SPAN') document.getElementById('edFixedInput').click()">
                         📎 Adicionar Áudio Fixo (Opcional)
@@ -420,10 +449,23 @@
                     <div id="edProgressBarContainer">
                         <div id="edProgressBar"></div>
                     </div>
-                    
                     <ul class="editor-list" id="edList">
                         </ul>
                 </div>
+            </div>
+        </div>
+
+        <div class="capture-container" id="captureApp">
+            <div class="capture-wrapper">
+                <h2 class="capture-title">Sonus Capture</h2>
+                <p class="capture-subtitle">Capture o áudio de qualquer aba ou janela do seu computador para transformar em material de estudo.</p>
+                
+                <button class="rec-btn" id="recBtn" onclick="toggleCapture()">
+                    <svg id="recIcon" width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"></circle></svg>
+                </button>
+                
+                <div class="capture-status" id="captureStatus">Pronto para gravar.</div>
+                <div style="font-size: 0.8rem; color: #666; max-width: 400px;">Nota: Ao gravar, selecione a guia desejada e marque a opção <strong>"Compartilhar áudio da guia"</strong>. O arquivo baixado será no formato leve de web (.webm), totalmente compatível com o Sonus Editor!</div>
             </div>
         </div>
 
@@ -444,14 +486,11 @@
         let currentTrackId = null, isShuffle = false, repeatMode = 0, activeTab = 'PLAYLIST';
         let uploadTargetTab = 'PLAYLIST';
         
-        // MAIS ANTIGOS (CRESCENTE) PRIMEIRO COMO PADRÃO NAS ABAS DE ACERVO
-        let sortDescending = false; 
+        let sortDescending = false; // MAIS ANTIGOS (CRESCENTE) PRIMEIRO POR PADRÃO
 
-        // Variáveis de Multi-Seleção (Shift)
         window.plLastClickedIndex = null;
         window.edLastClickedIndex = null;
 
-        // Elementos DOM
         const track = document.getElementById('lyricsTrack'), lyricsWindow = document.getElementById('lyricsWindow'), playerApp = document.getElementById('playerApp');
         const seekSlider = document.getElementById('seekSlider'), timeCurrent = document.getElementById('timeCurrent'), timeTotal = document.getElementById('timeTotal');
         const playBtn = document.getElementById('playBtn'), playlistUI = document.getElementById('playlist'), emptyState = document.getElementById('emptyState');
@@ -475,15 +514,21 @@
 
         function switchApp(appName) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('playerApp').style.display = 'none';
+            document.getElementById('editorApp').style.display = 'none';
+            document.getElementById('captureApp').style.display = 'none';
+
             if(appName === 'music') {
                 document.getElementById('navMusic').classList.add('active');
                 document.getElementById('playerApp').style.display = 'flex';
-                document.getElementById('editorApp').style.display = 'none';
-            } else {
+            } else if(appName === 'editor') {
                 document.getElementById('navEditor').classList.add('active');
-                document.getElementById('playerApp').style.display = 'none';
                 document.getElementById('editorApp').style.display = 'flex';
                 audio.pause(); 
+            } else if(appName === 'capture') {
+                document.getElementById('navCapture').classList.add('active');
+                document.getElementById('captureApp').style.display = 'flex';
+                audio.pause();
             }
             document.getElementById('sidebar').classList.remove('expanded');
         }
@@ -494,6 +539,92 @@
             if (pwd !== null) alert("Senha incorreta!");
             return false;
         }
+
+        // ==========================================
+        // LÓGICA DO SONUS CAPTURE
+        // ==========================================
+        let mediaRecorder;
+        let audioChunks = [];
+        let captureStream = null;
+        let isRecording = false;
+
+        async function toggleCapture() {
+            const btn = document.getElementById('recBtn');
+            const status = document.getElementById('captureStatus');
+            const icon = document.getElementById('recIcon');
+
+            if (!isRecording) {
+                try {
+                    captureStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: true, 
+                        audio: true
+                    });
+
+                    const audioTracks = captureStream.getAudioTracks();
+                    if (audioTracks.length === 0) {
+                        alert("Atenção: Você esqueceu de marcar a opção 'Compartilhar áudio da guia' na janela de seleção!");
+                        captureStream.getTracks().forEach(t => t.stop());
+                        return;
+                    }
+
+                    const audioOnlyStream = new MediaStream(audioTracks);
+                    mediaRecorder = new MediaRecorder(audioOnlyStream, { mimeType: 'audio/webm' });
+
+                    mediaRecorder.ondataavailable = e => {
+                        if (e.data.size > 0) audioChunks.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = audioUrl;
+                        a.download = `Sonus_Capture_${Date.now()}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(audioUrl);
+                        }, 100);
+                        audioChunks = [];
+                    };
+
+                    // Se o usuário fechar o compartilhamento pela barra do Chrome
+                    captureStream.getVideoTracks()[0].onended = () => {
+                        if(isRecording) stopRecordingUI();
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.classList.add('recording');
+                    status.innerText = "Gravando áudio da guia...";
+                    icon.innerHTML = `<rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect>`;
+
+                } catch (err) {
+                    console.error("Erro na captura:", err);
+                    status.innerText = "Gravação cancelada ou falhou.";
+                }
+            } else {
+                stopRecordingUI();
+            }
+        }
+
+        function stopRecordingUI() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                captureStream.getTracks().forEach(t => t.stop());
+            }
+            isRecording = false;
+            document.getElementById('recBtn').classList.remove('recording');
+            document.getElementById('captureStatus').innerText = "Áudio processado e baixado!";
+            document.getElementById('recIcon').innerHTML = `<circle cx="12" cy="12" r="8"></circle>`;
+            
+            setTimeout(() => {
+                document.getElementById('captureStatus').innerText = "Pronto para gravar.";
+            }, 3000);
+        }
+
 
         // ==========================================
         // LÓGICA DO SONUS EDITOR E ÁUDIO FIXO NA NUVEM
@@ -512,7 +643,6 @@
         const edFileInput = document.getElementById('edFileInput');
         const edFixedInput = document.getElementById('edFixedInput');
 
-        // BAXAR O ÁUDIO FIXO DA NUVEM AO CARREGAR O SITE
         async function loadFixedAudioFromDB() {
             if (!_supabase) return;
             try {
@@ -536,7 +666,6 @@
             document.getElementById('fixedAudioStatus').innerHTML = `✅ Áudio fixo na nuvem: <span style="color:var(--highlight); margin-left:5px;">${edFixedAudioFile.name}</span> <span style="color:#ff3333; margin-left:10px; font-weight:bold;" title="Remover" onclick="removeFixedAudio(event)">✕</span>`;
         }
 
-        // Eventos de Upload
         if(edDropzone) {
             edDropzone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.add('dragover'); });
             edDropzone.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.remove('dragover'); });
@@ -547,7 +676,6 @@
         }
         if(edFileInput) edFileInput.addEventListener('change', (e) => handleEditorFiles(e.target.files));
         
-        // Fazer Upload do Áudio Fixo pra Nuvem na hora que seleciona
         if(edFixedInput) {
             edFixedInput.addEventListener('change', async (e) => {
                 if(e.target.files && e.target.files.length > 0) {
@@ -615,7 +743,7 @@
             let tempAudio = null, tempLrc = null;
             Array.from(files).forEach(file => {
                 const ext = file.name.split('.').pop().toLowerCase();
-                if (['mp3', 'wav', 'm4a'].includes(ext)) tempAudio = file;
+                if (['mp3', 'wav', 'webm', 'ogg', 'm4a'].includes(ext)) tempAudio = file;
                 else if (['lrc', 'txt'].includes(ext)) tempLrc = file;
             });
 
@@ -672,7 +800,6 @@
                 const li = document.createElement('li');
                 li.id = `ed-item-${ph.id}`;
                 
-                // MULTI-SELEÇÃO LÓGICA (CTRL / SHIFT) NO EDITOR
                 li.onclick = (e) => {
                     if (e.target.closest('.ed-btn')) return;
                     
@@ -704,7 +831,7 @@
                 
                 let mergeBtnHTML = `<button class="ed-btn merge" style="${mergeStyle}" onclick="toggleMergeEditorPhrase(${index})" title="Selecionar para fundir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>`;
                 
-                let deleteBtnHTML = `<button class="ed-btn delete-btn" onclick="deleteEditorPhrase(${index}, event)" title="Excluir (Múltiplos com Ctrl+Click ou Shift+Click)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>`;
+                let deleteBtnHTML = `<button class="ed-btn delete-btn" onclick="deleteEditorPhrase(${index}, event)" title="Excluir da lista"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>`;
 
                 li.innerHTML = `
                     <div class="ed-content">
@@ -760,7 +887,6 @@
             const phClicked = edPhrases[index];
             let idsToDelete = [phClicked.id];
 
-            // Verifica se a lixeira clicada faz parte do grupo selecionado
             if (selectedElements.length > 0) {
                 const selectedIds = Array.from(selectedElements).map(el => parseInt(el.id.replace('ed-item-', '')));
                 if (selectedIds.includes(phClicked.id)) {
@@ -790,9 +916,6 @@
             }, durationMs);
         }
 
-        // ==========================================
-        // MOTOR DE EXPORTAÇÃO (COM ÁUDIO FIXO MULTIPLEX)
-        // ==========================================
         function audioBufferToWav(buffer) {
             let numOfChan = buffer.numberOfChannels, length = buffer.length * numOfChan * 2 + 44,
                 bufferArray = new ArrayBuffer(length), view = new DataView(bufferArray),
@@ -966,7 +1089,6 @@
             }
         }
 
-        // LÓGICA DE RENOMEAR INLINE (2 CLIQUES) - Desativada para Separadores por segurança
         function renameTrackInline(e, id) {
             e.stopPropagation(); 
             const track = dbAllTracks.find(t => t.id == id);
@@ -1094,82 +1216,6 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // LÓGICA DE AVANÇAR OS 14 SEGUINTES
-        async function selectNext14() {
-            if (activeTab === 'PLAYLIST') return;
-            if (!pedirSenha("avançar para o próximo lote de 14")) return;
-
-            document.getElementById('loadingOverlay').style.display = 'flex';
-            
-            let lastSelectedIndex = -1;
-            for (let i = 0; i < displayList.length; i++) {
-                if (displayList[i].is_atual) {
-                    lastSelectedIndex = i;
-                }
-            }
-
-            let startIndex = lastSelectedIndex + 1;
-            
-            if (startIndex >= displayList.length) {
-                alert("Você já chegou ao fim da lista nesta aba!");
-                document.getElementById('loadingOverlay').style.display = 'none';
-                return;
-            }
-
-            let updates = [];
-            
-            // 1. Limpa todos da Playlist
-            dbAllTracks.forEach(t => {
-                if (t.is_atual) {
-                    t.is_atual = false;
-                    updates.push({ id: t.id, is_atual: false, ordem: 0 });
-                }
-            });
-
-            // 2. Marca os próximos 14
-            let count = 0;
-            for (let i = startIndex; i < displayList.length && count < 14; i++) {
-                let track = displayList[i];
-                track.is_atual = true;
-                track.ordem = count;
-                
-                let existingUpdate = updates.find(u => u.id === track.id);
-                if (existingUpdate) {
-                    existingUpdate.is_atual = true;
-                    existingUpdate.ordem = count;
-                } else {
-                    updates.push({ id: track.id, is_atual: true, ordem: count });
-                }
-                count++;
-            }
-
-            updates.forEach(u => {
-                let track = dbAllTracks.find(t => t.id === u.id);
-                if (track) {
-                    track.is_atual = u.is_atual;
-                    if (u.ordem !== undefined) track.ordem = u.ordem;
-                }
-            });
-
-            processDisplayList();
-
-            try {
-                let fullUpdates = updates.map(u => {
-                    let t = dbAllTracks.find(trk => trk.id === u.id);
-                    return {
-                        id: t.id, title: t.title, audio_url: t.audioUrl, lrc_url: t.lrcUrl,
-                        is_atual: t.is_atual, is_question: t.is_question, is_phrases: t.is_phrases,
-                        ordem: t.ordem
-                    };
-                });
-                await _supabase.from('playlist').upsert(fullUpdates);
-            } catch (e) {
-                console.error("Erro ao avançar 14", e);
-            }
-            
-            document.getElementById('loadingOverlay').style.display = 'none';
-        }
-
         function updateSortIcon() {
             const btn = document.getElementById('sortBtn'); if (!btn) return;
             if (sortDescending) { btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`; btn.title = "Ordem Decrescente (Z-A)"; } 
@@ -1270,7 +1316,6 @@
                 const li = document.createElement('li');
                 li.setAttribute('data-id', trackObj.id);
                 
-                // MULTI-SELEÇÃO LOGIC PARA A PLAYLIST GERAL (Shift e Ctrl)
                 li.onclick = (e) => { 
                     if (e.target.closest('.action-icon') || e.target.tagName === 'INPUT') return; 
                     
@@ -1358,7 +1403,6 @@
             });
         }
 
-        // LÓGICA DE INCLUSÃO/REMOÇÃO EM MASSA (PLAYLIST)
         async function toggleAtualState(id, isAtual, event) {
             if(event) event.stopPropagation();
 
