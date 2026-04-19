@@ -139,6 +139,7 @@
         .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.75rem; font-weight: 700; color: #888; }
         .btn-add { background: transparent; border: 1px solid #444; color: #ffffff; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: all 0.2s; display: flex; justify-content: center; align-items: center; height: 30px; }
         .btn-add:hover { background: #222; border-color: #666; color: var(--highlight); }
+        
         .header-actions { display: flex; gap: 8px; align-items: center; }
 
         .playlist { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
@@ -153,7 +154,7 @@
         .playlist li.separator-item { background: transparent; border: 1px dashed #444; margin: 15px 0; padding: 5px 15px; }
         .playlist li.separator-item:hover { border-color: var(--highlight); background: rgba(255,204,0,0.05); }
         
-        /* Correção do Ícone de Arrastar (Somente na aba Playlist) */
+        /* Correção do Ícone de Arrastar e Espaço: SOMENTE NA ABA PLAYLIST */
         .drag-handle { display: none; margin-right: 10px; color: #555; cursor: grab; }
         body.tab-mode-playlist .drag-handle { display: block; }
         body.tab-mode-playlist .playlist li { cursor: grab; }
@@ -348,6 +349,7 @@
                     <span id="tabSubtitle">Fila de Estudos</span>
                     <div class="header-actions">
                         <button class="btn-add" id="sortBtn" onclick="toggleSort()" style="display: none; width: 30px; padding: 0;"></button>
+                        
                         <button class="btn-add" id="next14Btn" onclick="selectNext14()" title="Avançar para os próximos 14" style="display: none; width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5"></polygon><polygon points="2 19 11 12 2 5"></polygon></svg></button>
                         
                         <button class="btn-add" id="autoSortBtn" onclick="autoSortPlaylist()" title="Organização Automática" style="width: 30px; padding: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
@@ -417,7 +419,7 @@
         let dbAllTracks = [], displayList = [], playbackQueue = [];
         let currentTrackId = null, isShuffle = false, repeatMode = 0, activeTab = 'PLAYLIST';
         let uploadTargetTab = 'PLAYLIST';
-        let sortDescending = false; // AGORA CARREGA OS MAIS ANTIGOS (NATURAL) PRIMEIRO
+        let sortDescending = false; // MAIS ANTIGOS PRIMEIRO POR PADRÃO
 
         // Elementos DOM
         const track = document.getElementById('lyricsTrack'), lyricsWindow = document.getElementById('lyricsWindow'), playerApp = document.getElementById('playerApp');
@@ -436,7 +438,7 @@
         document.addEventListener('click', (e) => {
             const sidebar = document.getElementById('sidebar');
             const hamburger = document.querySelector('.hamburger-btn');
-            if (sidebar.classList.contains('expanded') && !sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+            if (sidebar && sidebar.classList.contains('expanded') && !sidebar.contains(e.target) && hamburger && !hamburger.contains(e.target)) {
                 sidebar.classList.remove('expanded');
             }
         });
@@ -479,13 +481,15 @@
         const edDropzone = document.getElementById('edDropzone');
         const edFileInput = document.getElementById('edFileInput');
 
-        edDropzone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.add('dragover'); });
-        edDropzone.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.remove('dragover'); });
-        edDropzone.addEventListener('drop', (e) => {
-            e.preventDefault(); e.stopPropagation(); edDropzone.classList.remove('dragover');
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleEditorFiles(e.dataTransfer.files);
-        });
-        edFileInput.addEventListener('change', (e) => handleEditorFiles(e.target.files));
+        if(edDropzone) {
+            edDropzone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.add('dragover'); });
+            edDropzone.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); edDropzone.classList.remove('dragover'); });
+            edDropzone.addEventListener('drop', (e) => {
+                e.preventDefault(); e.stopPropagation(); edDropzone.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleEditorFiles(e.dataTransfer.files);
+            });
+        }
+        if(edFileInput) edFileInput.addEventListener('change', (e) => handleEditorFiles(e.target.files));
 
         function saveEditorHistory() {
             edPhrasesUndoHistory.push(JSON.parse(JSON.stringify(edPhrases)));
@@ -665,9 +669,6 @@
             }, durationMs);
         }
 
-        // ==========================================
-        // MOTOR DE EXPORTAÇÃO REAL E CORTE FÍSICO
-        // ==========================================
         function audioBufferToWav(buffer) {
             let numOfChan = buffer.numberOfChannels, length = buffer.length * numOfChan * 2 + 44,
                 bufferArray = new ArrayBuffer(length), view = new DataView(bufferArray),
@@ -845,7 +846,6 @@
                 let isQ = activeTab === 'QUESTION';
                 let isP = activeTab === 'PHRASES';
 
-                // MÁQUINA DO TEMPO: Falsificando a Data de Criação
                 let fakeDate = new Date();
                 if (displayList.length > 0) {
                     let targetIndex = pos - 1;
@@ -939,10 +939,10 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // LÓGICA PARA AVANÇAR O LOTE DE 14 ÁUDIOS
+        // NOVO LOTE DE ESTUDOS: Avança 14
         async function selectNext14() {
             if (activeTab === 'PLAYLIST') return;
-            if (!pedirSenha("avançar para os próximos 14 áudios")) return;
+            if (!pedirSenha("avançar para o próximo lote de 14")) return;
 
             document.getElementById('loadingOverlay').style.display = 'flex';
             
@@ -963,34 +963,30 @@
 
             let updates = [];
             
-            // 1. Desmarca os atuais dessa aba
-            displayList.forEach(t => {
+            // Limpa toda a playlist globalmente
+            dbAllTracks.forEach(t => {
                 if (t.is_atual) {
                     t.is_atual = false;
                     updates.push({ id: t.id, is_atual: false });
                 }
             });
 
-            // 2. Marca os próximos 14 (ignorando separadores se quiser, mas aqui marcamos a sequência de 14 linhas visíveis)
+            // Pega os próximos 14 da aba atual
             let count = 0;
-            let maxOrdem = Math.max(0, ...dbAllTracks.filter(t => t.is_atual).map(t => t.ordem));
-            if (maxOrdem === -Infinity) maxOrdem = 0;
-
             for (let i = startIndex; i < displayList.length && count < 14; i++) {
                 displayList[i].is_atual = true;
-                displayList[i].ordem = maxOrdem + 1 + count;
+                displayList[i].ordem = count;
                 
                 let existingUpdate = updates.find(u => u.id === displayList[i].id);
                 if (existingUpdate) {
                     existingUpdate.is_atual = true;
-                    existingUpdate.ordem = displayList[i].ordem;
+                    existingUpdate.ordem = count;
                 } else {
-                    updates.push({ id: displayList[i].id, is_atual: true, ordem: displayList[i].ordem });
+                    updates.push({ id: displayList[i].id, is_atual: true, ordem: count });
                 }
                 count++;
             }
 
-            // Sincroniza a base global com o que acabou de mudar na tela
             updates.forEach(u => {
                 let track = dbAllTracks.find(t => t.id === u.id);
                 if (track) {
